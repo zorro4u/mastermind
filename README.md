@@ -12,7 +12,7 @@
 
 
 ### Solver Strategy
-- randomly selected element from reduced variants
+- randomly selected element from possible variants
 - Knuth algoritm
  
  
