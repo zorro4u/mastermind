@@ -93,9 +93,9 @@ def gen_allvariants():
         w/o repetition: allVariants = factorial(char) // factorial(char-columns)  = len(variants)
     """
     if m.REPETITION:
-        vari = product(m.char_set, repeat=m.COLUMNS)   # w/  rep. __ string tuple of variants
+        vari = product(m.char_set, repeat=m.COLUMNS)         # w/  rep. __ string tuple of variants
     else:
-        vari = perm(m.char_set, m.COLUMNS)             # w/o rep. __ string tuple of variants
+        vari = perm(m.char_set, m.COLUMNS)                   # w/o rep. __ string tuple of variants
     return [''.join(single_char) for single_char in vari]    # string list of all variants, tuple dissolve and merge
 
 
@@ -121,11 +121,11 @@ def get_guess(step, variants, allvariants):
     """
     if  not m.KNUTH:
         guess = get_variant(variants)   # a random element from the reduced variant pool
-    else:                               # Knuth algorithm, slowly
+    else:                               # Knuth algorithm
         if step > 1:
             if len(variants) != 1:
                 key = lambda g: max(Counter(feedback(g, _) for _ in variants).values())
-                guess = min(allvariants, key=key)   # Knuth
+                guess = min(allvariants, key=key)   # Knuth, slowly
             else:
                 guess = variants[0]                 # last variant directly -> guess = code
         elif m.NUMBERS:                             # special first guess for digits/letters
@@ -157,7 +157,7 @@ def lenVariants():
     if m.REPETITION:
         lenV = m.CHAR ** m.COLUMNS
     else:
-        lenV = fact(m.CHAR) // fact(m.CHAR-m.COLUMNS)
+        lenV = fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
     return lenV
 
 
