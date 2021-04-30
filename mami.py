@@ -64,13 +64,13 @@ def run_mastermind():
     while black < m.COLUMNS and step < m.LIMIT:
         step += 1
 
-        # get a guess
+        # gets a guess
         if silent or m.AUTOPLAY2:
             guess = get_guess(step, variants, allvariants)
         else:
             guess = input_seq('<?> :  ')
 
-        # get a feedback for 'guess' vs. 'code'
+        # gets a feedback for 'guess' vs. 'code'
         answer = black, white = feedback(guess, code)
 
         # Filters out those with the same answer pattern for the current attempt from the current variant pool.
