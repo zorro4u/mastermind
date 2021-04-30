@@ -11,7 +11,7 @@
     - seperate statistic mode available
 
     Solver Strategy
-    - random choice of reduced variants (brute force)
+    - randomly selected element from possible variants
     - Knuth algoritm
 
     python 3.9, standard module
