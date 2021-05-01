@@ -34,7 +34,7 @@ class setup_values:
     LIMIT      = 10
     AUTOPLAY1  = True    # the code maker, automatic
     AUTOPLAY2  = True    # the code solver, automatic
-    NUMBERS    = False    # digits (or letters) as character: yes
+    NUMBERS    = True    # digits (or letters) as character: yes
     REPETITION = True    # repetition of a character: yes
     STATISTIC  = False   # a special mode to determine avg of guesses
     KNUTH      = False   # use the Knuth solver, max 5 guesses (6*4), slowly
