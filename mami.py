@@ -11,7 +11,7 @@
     - seperate statistic mode available
 
     Solver Strategy
-    - randomly selected element from possible variants
+    - randomly selected item from possible variants
     - Knuth algoritm
 
     python 3.9, standard module
@@ -117,7 +117,9 @@ def get_variant(variants):
 
 
 def get_guess(step, variants, allvariants):
-    """
+    """ selects an item from a list:
+        - randomly
+        - Knuth algoritm
     """
     if  not m.KNUTH:
         guess = get_variant(variants)   # a random element from the reduced variant pool
