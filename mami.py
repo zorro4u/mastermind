@@ -110,30 +110,37 @@ def gen_variant():
     return ''.join(map(str, seq))                      # string
 
 
-def get_variant(variants):
-    """ selects a random element from the 'variants' list
-    """
-    return random.sample(variants,1)[0]                # string
-
-
 def get_guess(step, variants, allvariants):
     """ selects an item from a list:
         - randomly
         - Knuth algoritm
     """
     if  not m.KNUTH:
-        guess = get_variant(variants)   # a random element from the reduced variant pool
-    else:                               # Knuth algorithm
-        if step > 1:
-            if len(variants) != 1:
-                key = lambda g: max(Counter(feedback(g, _) for _ in variants).values())
-                guess = min(allvariants, key=key)   # Knuth, slowly
-            else:
-                guess = variants[0]                 # last variant directly -> guess = code
-        elif m.NUMBERS:                             # special first guess for digits/letters
-            guess = ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+        guess = get_random_variant(variants)
+    else:
+        guess = get_knuth_variant(variants)
+    return guess
+
+
+def get_random_variant(variants):
+    """ selects a random element from the 'variants' list
+    """
+    return random.sample(variants,1)[0]                # string
+
+
+def get_knuth_variant(variants):
+    """
+    """
+    if step > 1:
+        if len(variants) != 1:
+            key = lambda g: max(Counter(feedback(g, _) for _ in variants).values())
+            guess = min(allvariants, key=key)   # Knuth, slowly
         else:
-            guess = ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+            guess = variants[0]                 # last variant directly -> guess = code
+    elif m.NUMBERS:                             # special first guess for digits/letters
+        guess = ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+    else:
+        guess = ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
     return guess
 
 
@@ -366,7 +373,7 @@ def main():
             print()
 
             if repeats == '': repeats = 1
-            if repeats == 1: m.STATISTIC = False
+            if repeats == 1:  m.STATISTIC = False
 
             starttime0 = time.perf_counter()
             stat = [[0]*repeats for _ in range(2)]
