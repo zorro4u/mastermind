@@ -118,7 +118,7 @@ def get_guess(step, variants, allvariants):
     if  not m.KNUTH:
         guess = get_random_variant(variants)
     else:
-        guess = get_knuth_variant(variants)
+        guess = get_knuth_variant(step, variants, allvariants)
     return guess
 
 
@@ -128,7 +128,7 @@ def get_random_variant(variants):
     return random.sample(variants,1)[0]                # string
 
 
-def get_knuth_variant(variants):
+def get_knuth_variant(step, variants, allvariants):
     """
     """
     if step > 1:
