@@ -129,15 +129,19 @@ def get_random_variant(variants):
 
 
 def get_knuth_variant(step, variants, allvariants):
-    """
+    """ Knuth algorithm, best by worst-case, slowly
     """
     if step > 1:
         if len(variants) != 1:
-            key = lambda g: max(Counter(feedback(g, _) for _ in variants).values())
-            guess = min(allvariants, key=key)   # Knuth, slowly
+            # make the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
+            # return the greatest value of histograms for the answers of allV -> variants
+            max_toa = lambda allV: max(Counter(feedback(allV, var) for var in variants).values())    
+            
+            # return the first variant with the smallest maxi-value of the set (allvariants : maxi-value)
+            guess = min(allvariants, key = max_toa) 
         else:
             guess = variants[0]                 # last variant directly -> guess = code
-    elif m.NUMBERS:                             # special first guess for digits/letters
+    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
         guess = ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
     else:
         guess = ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
