@@ -218,7 +218,7 @@ def show_guess(step, guess, variants, result):
         msg05 = ''
     else: msg03 = msg04 = ''
 
-    if black < m.COLUMNS and lenVari > 9:     # not yet solved and too many variants to display
+    if black < m.COLUMNS and (lenVari > 9 or m.KNUTH):   # not yet solved and too many variants to display
         msg = msg01 + msg02 + msg03 + msg05
     elif black < m.COLUMNS:                   # not resolved yet
         msg = msg01 + msg02 + msg03 + msg04 + msg05
