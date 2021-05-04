@@ -220,14 +220,12 @@ def show_guess(step, guess, variants, result):
 
     if black < m.COLUMNS and (lenVari > 9 or m.KNUTH):   # not yet solved and too many variants to display
         msg = msg01 + msg02 + msg03 + msg05
-    elif black < m.COLUMNS:                   # not resolved yet
+    elif black < m.COLUMNS:                   # not resolved yet, displayed variants
         msg = msg01 + msg02 + msg03 + msg04 + msg05
     else:                                     # solved
-        #duration = (time.perf_counter()-starttime)*1000     #msec
         msg = (
             f'{fg.green}' + msg01 + f'{fg.reset}\n'
             f'\n{fg.green}-- Done! --{fg.reset}'
-            #f'\n{fg.green}-- Done! --{fg.reset}    in {duration:,.1f} msec'
         )
     print(msg)
 
