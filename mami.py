@@ -203,8 +203,8 @@ def check_setup():
     # adjust columns
     if not m.REPETITION and (m.COLUMNS > m.CHAR): m.COLUMNS = m.CHAR
 
-    # new character pool
-    if m.NUMBERS: m.char_set = m.digits[:m.CHAR]
+    # make the set of characters
+    if m.NUMBERS: m.char_set = m.digits[:m.CHAR]     # cuts the string from the left
     else:         m.char_set = m.letters[:m.CHAR]
     
     
