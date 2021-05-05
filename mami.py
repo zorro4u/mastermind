@@ -8,6 +8,7 @@
     - digits or letters encoded
     - automatic feedback
     - changeable solver strategy
+    - can use an extern helper file with precalculated answers
     - seperate statistic mode available
 
     Solver Strategy
@@ -26,6 +27,12 @@ from math import factorial as fact
 from os import system
 system("color")
 
+from functools import lru_cache
+from pathlib import Path
+import pickle
+import bz2
+
+
 class setup_values:
     """ contains global values for initial setup
     """
@@ -38,9 +45,18 @@ class setup_values:
     REPETITION = True    # repetition of a character: yes
     STATISTIC  = False   # a special mode to determine avg of guesses
     KNUTH      = False   # use the Knuth solver, max 5 guesses (6*4), slowly
-
+    TOA_help   = False   # use the toa_helper file
+    
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
     digits   = '1234567890'
+    char_set = ''        # will be set later on 'check_setup'
+    
+    toa        = {}      # dict: table_of_answers
+    toa_loaded = False   # toa file is loaded
+
+    userSubDirPath = r'Documents\Programming'   # location directory of toa file -- !! CUSTOMIZE HERE !!
+    toa_fn         = 'toa.pkl'                  # name of toa file
+
 
 m = setup_values         # rename for easier use
 
@@ -66,7 +82,7 @@ def run_mastermind():
 
         # gets a guess
         if silent or m.AUTOPLAY2:
-            guess = get_guess(step, variants, allvariants)
+            guess = get_guess(step, variants, allvariants)  # random or Knuth
         else:
             guess = input_seq('<?> :  ')
 
@@ -83,9 +99,7 @@ def run_mastermind():
 
     return step
 
-
 # ==========================================================
-
 def gen_allvariants():
     """ generates a string set of all possible variants
         from 'char_set' with the number of 'columns'
@@ -116,17 +130,16 @@ def get_guess(step, variants, allvariants):
         - Knuth algoritm
     """
     if  not m.KNUTH:
-        guess = get_random_variant(variants)
+        return get_random_variant(variants)
     else:
-        guess = get_knuth_variant(step, variants, allvariants)
-    return guess
+        return get_knuth_variant(step, variants, allvariants)
 
 
 def get_random_variant(variants):
     """ selects a random element from the 'variants' list
     """
     return random.sample(variants,1)[0]                # string
-
+    
 
 def get_knuth_variant(step, variants, allvariants):
     """ Knuth algorithm, best by worst-case, slowly
@@ -135,44 +148,52 @@ def get_knuth_variant(step, variants, allvariants):
         if len(variants) != 1:
             # make the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # return the greatest value of histograms for the answers of allV -> variants
-            max_toa = lambda allV: max(Counter(feedback(allV, var) for var in variants).values())    
+            max_toa = lambda var: max(Counter(feedback(var, _) for _ in variants).values())
             
-            # return the first variant with the smallest maxi-value of the set (allvariants : maxi-value)
-            guess = min(allvariants, key = max_toa) 
+            # return the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
+            return min(allvariants, key = max_toa) 
         else:
-            guess = variants[0]                 # last variant directly -> guess = code
+            return variants[0]                  # last variant directly -> guess = code
     elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        guess = ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+        return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
     else:
-        guess = ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
-    return guess
+        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
 
+@lru_cache(1 << 20)
 def feedback(guess, code):
     """ tests 'guess' for 'code':
         black pin: char and position are correct
         white pin: char is correct, position is wrong
     """
-    # counts frequency of characters / histogram
-    # returns the sum of the the smallest match
-    white = sum((Counter(guess) & Counter(code)).values())
-
+    # if previous calculated and stored in database, use it
+    if (guess, code) in m.toa:
+        return m.toa[guess, code]            
+            
     # forms pairs from both lists [(0. 0.) (1. 1.) ...], then compares both elements
     black = sum(a==b for a,b in zip(guess, code))
 
-    white -= black                 # avoid double counting of white (even if black)
-    return black, white            # integer return; string return e.g. ('x'*black + 'o'*white)
+    # counts frequency of characters / histogram
+    # returns the sum of the the smallest match
+    white = sum(min(guess.count(c), code.count(c)) for c in m.char_set)     # faster
+    #white = sum((Counter(guess) & Counter(code)).values())                 
+    
+    white -= black                      # avoid double counting of white (even if black)
+    m.toa[guess, code] = black, white   # write in table_of_answers database
+    return black, white                 # integer return; string return e.g. ('x'*black + 'o'*white)
 
-
+    
 def lenVariants():
     """
     """
     if m.REPETITION:
-        lenV = m.CHAR ** m.COLUMNS
+        return m.CHAR ** m.COLUMNS
     else:
-        lenV = fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
-    return lenV
+        return fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
 
+    
+# ==========================================================
+# Input / Output
 
 def check_setup():
     # max. 10 digits or 26 letters
@@ -185,10 +206,49 @@ def check_setup():
     # new character pool
     if m.NUMBERS: m.char_set = m.digits[:m.CHAR]
     else:         m.char_set = m.letters[:m.CHAR]
+    
+    
+def make_setup():
+    """ show and set the global values for the game
+    """
+    check_setup()
+    show_setup()
 
+    x = input('Change setup? <y>  : ')
+    print()
+    if x.lower() != 'y': return
 
-# ==========================================================
-# Input / Output
+    x = input_int(f'{"Characters":12}{fg.grey}{"<"+str(m.CHAR)+">":7}{fg.reset}: ', min=1, max=26)
+    if x != '': m.CHAR = x
+    x = input_int(f'{"Columns":12}{fg.grey}{"<"+str(m.COLUMNS)+">":7}{fg.reset}: ', min=1, max=100)
+    if x != '': m.COLUMNS = x
+    x = input_int(f'{"Repetition":12}{fg.grey}{"["+str(m.REPETITION)+"]":7}{fg.reset}: ')
+    if x != '': m.REPETITION = x
+    x = input_int(f'{"Coder autom":12}{fg.grey}{"["+str(m.AUTOPLAY1)+"]":7}{fg.reset}: ')
+    if x != '': m.AUTOPLAY1 = x
+    x = input_int(f'{"Solver auto":12}{fg.grey}{"["+str(m.AUTOPLAY2)+"]":7}{fg.reset}: ')
+    if x != '': m.AUTOPLAY2 = x
+    x = input_int(f'{"Digits use":12}{fg.grey}{"["+str(m.NUMBERS)+"]":7}{fg.reset}: ')
+    if x != '': m.NUMBERS = x
+    x = input_int(f'{"Knuth solver":12}{fg.grey}{"["+str(m.KNUTH)+"]":7}{fg.reset}: ')
+    if x != '': m.KNUTH = x
+    x = input_int(f'{"TOA file use":12}{fg.grey}{"["+str(m.TOA_help)+"]":7}{fg.reset}: ')
+    if x != '': m.TOA_help = x
+    x = input_int(f'{"Statistic":12}{fg.grey}{"["+str(m.STATISTIC)+"]":7}{fg.reset}: ')
+    if x != '': m.STATISTIC = x
+    x = input_int(f'{"Limit":12}{fg.grey}{"<"+str(m.LIMIT)+">":7}{fg.reset}: ', min=1, max=50)
+    if x != '': m.LIMIT = x
+
+    check_setup()
+
+    print(f'{"Solutions":19}: {lenVariants():,.0f}\n'\
+        f'{"-"*30}\n')
+    
+    if m.TOA_help: load_toa_file()
+    elif m.toa_loaded: 
+        m.toa.clear()
+        m.toa_loaded = False
+
 
 def show_setup():
     print(
@@ -199,6 +259,7 @@ def show_setup():
         f'{"Solver auto":12}: {m.AUTOPLAY2}\n'
         f'{"Digits used":12}: {m.NUMBERS}\n'
         f'{"Knuth solver":12}: {m.KNUTH}\n'
+        f'{"TOA file use":12}: {m.TOA_help}\n'
         f'{"Statistic":12}: {m.STATISTIC}\n'
         f'{"Limit":12}: {m.LIMIT}\n'
         f'{"Solutions:":12}: {lenVariants():,.0f}\n'
@@ -230,20 +291,6 @@ def show_guess(step, guess, variants, result):
     print(msg)
 
 
-def show_gameover(code):
-    print(
-        f'\n{fg.red}-- GAME OVER --{fg.reset}\n'
-        f'The code was "{code}"\n'
-    )
-
-
-def show_code(code=''):
-    print(
-        #f'{"":6}' + ' '.join(code) + '\n'
-        f'{"code:":6}{"* " *m.COLUMNS}\n'
-    )
-
-
 def show_statistics(stati):
     lenVari  = lenVariants()
     guesses  = stati[0]
@@ -268,40 +315,18 @@ def show_statistics(stati):
     print(msg, end='')
 
 
-def make_setup():
-    """ show and set the global values for the game
-    """
+def show_code(code=''):
+    print(
+        #f'{"":6}' + ' '.join(code) + '\n'
+        f'{"code:":6}{"* " *m.COLUMNS}\n'
+    )
 
-    check_setup()
-    show_setup()
 
-    x = input('Change setup? <y>  : ')
-    print()
-    if x.lower() != 'y': return
-
-    x = input_int(f'{"Characters":12}{fg.grey}{"<"+str(m.CHAR)+">":7}{fg.reset}: ', min=1, max=26)
-    if x != '': m.CHAR = x
-    x = input_int(f'{"Columns":12}{fg.grey}{"<"+str(m.COLUMNS)+">":7}{fg.reset}: ', min=1, max=100)
-    if x != '': m.COLUMNS = x
-    x = input_int(f'{"Repetition":12}{fg.grey}{"["+str(m.REPETITION)+"]":7}{fg.reset}: ')
-    if x != '': m.REPETITION = x
-    x = input_int(f'{"Coder autom":12}{fg.grey}{"["+str(m.AUTOPLAY1)+"]":7}{fg.reset}: ')
-    if x != '': m.AUTOPLAY1 = x
-    x = input_int(f'{"Solver auto":12}{fg.grey}{"["+str(m.AUTOPLAY2)+"]":7}{fg.reset}: ')
-    if x != '': m.AUTOPLAY2 = x
-    x = input_int(f'{"Digits used":12}{fg.grey}{"["+str(m.NUMBERS)+"]":7}{fg.reset}: ')
-    if x != '': m.NUMBERS = x
-    x = input_int(f'{"Knuth solver":12}{fg.grey}{"["+str(m.KNUTH)+"]":7}{fg.reset}: ')
-    if x != '': m.KNUTH = x
-    x = input_int(f'{"Statistic":12}{fg.grey}{"["+str(m.STATISTIC)+"]":7}{fg.reset}: ')
-    if x != '': m.STATISTIC = x
-    x = input_int(f'{"Limit":12}{fg.grey}{"<"+str(m.LIMIT)+">":7}{fg.reset}: ', min=1, max=50)
-    if x != '': m.LIMIT = x
-
-    check_setup()
-
-    print(f'{"Solutions":19}: {lenVariants():,.0f}\n'\
-        f'{"-"*30}\n')
+def show_gameover(code):
+    print(
+        f'\n{fg.red}-- GAME OVER --{fg.reset}\n'
+        f'The code was "{code}"\n'
+    )
 
 
 def input_int(text, min=0, max=1):
@@ -336,6 +361,40 @@ def input_seq(text, newline=False):
         except KeyboardInterrupt as error: print(error)
 
 
+def load_toa_file():
+    dirPath = Path(Path.home(), m.userSubDirPath)
+    filename = Path(dirPath, m.toa_fn)
+    if m.toa_loaded: return
+    print(f'load table_of_answers ...')
+    if Path(filename).is_file():
+        file = bz2.BZ2File(filename, 'r')
+        m.toa = pickle.load(file)
+        file.close()
+    m.toa_loaded = True
+    print(f'{len(m.toa):,.0f} loaded\n')
+    #make_table_of_answers()
+
+
+def save_toa_file():
+    dirPath = Path(Path.home(), m.userSubDirPath)
+    filename = Path(dirPath, m.toa_fn)
+    print(f'\nsave table_of_answers ...')
+    file = bz2.BZ2File(filename, 'w')
+    pickle.dump(m.toa, file)
+    file.close()    
+    print(f'{len(m.toa):,.0f} saved\n',end='')
+
+
+def make_table_of_answers():
+    """ m.CHAR, m.NUMBERS -> m.char_set
+        m.COLUMNS        
+    """
+    allvariants = [''.join(x) for x in product(m.char_set, repeat=m.COLUMNS)]
+    for a in allvariants:
+        for b in allvariants:
+            m.toa[a,b] = (feedback(a,b))
+    
+    
 class fg:     #ansi escape foreground color (30-37)/90-97
     grey    = '\033[90m'
     red     = '\033[91m'
@@ -353,10 +412,8 @@ class fg:     #ansi escape foreground color (30-37)/90-97
     #timeit('"-".join(str(n) for n in range(100))', number=10000)
 
 
-
 # ==========================================================
 # ==========================================================
-
 def main():
     #print(__doc__)
     print(f'{fg.yellow}-- MasterMind --{fg.reset}')
@@ -389,13 +446,9 @@ def main():
             else: m.STATISTIC = True            # reset of (repeats==1)
 
         key = input('\nQuit the game? <y> : ')
+    
+    if m.toa_loaded: save_toa_file()
     print('\n-- END --\n')
 
 
 if __name__ == '__main__': main()
-
-
-
-
-
-

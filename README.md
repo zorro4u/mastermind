@@ -8,11 +8,12 @@
 - digits or letters encoded
 - automatic feedback
 - changeable solver strategy
+- can use an extern helper file with precalculated answers
 - seperate statistic mode available
 
 
 ### Solver Strategy
-- randomly selected element from possible variants
+- randomly selected element
 - Knuth algoritm
  
  
@@ -31,4 +32,3 @@
 #
 ...
 _for learning github & python 3.9 --- (2021)_
-
