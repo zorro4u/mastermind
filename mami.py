@@ -1,4 +1,4 @@
-""" mastermind (console)
+""" mastermind game (console)
 
     Setup
     - code maker and code solver
@@ -55,7 +55,7 @@ class setup_values:
     toa_loaded = False   # toa file is loaded
 
     userSubDirPath = r'Documents\Programming'   # location directory of toa file -- !! CUSTOMIZE HERE !!
-    toa_fn         = 'toa.pkl'                  # name of toa file
+    toa_fn         = 'toa.pkl'                  # name of toa file, (pickle_bzip2 file)
 
 
 m = setup_values         # rename for easier use
@@ -147,8 +147,8 @@ def get_knuth_variant(step, variants, allvariants):
     if step > 1:
         if len(variants) != 1:
             # make the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
-            # return the greatest value of histograms for the answers of allV -> variants
-            max_toa = lambda var: max(Counter(feedback(var, _) for _ in variants).values())
+            # return the greatest value of histograms for the answers of allVar -> variants
+            max_toa = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
             
             # return the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
             return min(allvariants, key = max_toa) 
@@ -160,7 +160,7 @@ def get_knuth_variant(step, variants, allvariants):
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
 
-@lru_cache(1 << 20)
+@lru_cache(maxsize=128)
 def feedback(guess, code):
     """ tests 'guess' for 'code':
         black pin: char and position are correct
@@ -180,7 +180,7 @@ def feedback(guess, code):
     
     white -= black                      # avoid double counting of white (even if black)
     m.toa[guess, code] = black, white   # write in table_of_answers database
-    return black, white                 # integer return; string return e.g. ('x'*black + 'o'*white)
+    return black, white                 # integer
 
     
 def lenVariants():
@@ -379,7 +379,7 @@ def save_toa_file():
     dirPath = Path(Path.home(), m.userSubDirPath)
     filename = Path(dirPath, m.toa_fn)
     print(f'\nsave table_of_answers ...')
-    file = bz2.BZ2File(filename, 'w')
+    file = bz2.BZ2File(filename, 'w')       # compressed with bzip2
     pickle.dump(m.toa, file)
     file.close()    
     print(f'{len(m.toa):,.0f} saved\n',end='')
@@ -443,7 +443,7 @@ def main():
             stat.append((time.perf_counter() - starttime0))             #sec
 
             if m.STATISTIC: show_statistics(stat)
-            else: m.STATISTIC = True            # reset of (repeats==1)
+            else: m.STATISTIC = True            # reset of repeats==1
 
         key = input('\nQuit the game? <y> : ')
     
