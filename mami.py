@@ -54,7 +54,7 @@ class setup_values:
     toa_loaded = False   # toa file is loaded
 
     userSubDirPath = r'Documents\Programming'   # location directory of toa file -- !! CUSTOMIZE HERE !!
-    toa_fn         = 'toa.pkl'                  # name of toa file, (pickle_bzip2 file)
+    toa_fn         = 'toa.pkl'                  # name of toa file, (bzip2-compressed pickle file)
 
 m = setup_values         # rename for easier use
 
@@ -299,7 +299,7 @@ def show_statistics(stati):
     avg2 = sum(duration)/len(duration)
     msg  = (
         f'{fg.cyan}{"med. guesses":13}: {med1:.1f}{fg.reset}\n'
-        f'{"avg. guesses":13}: {avg1:.2f}\n'
+        f'{"avg. guesses":13}: {avg1:.3f}\n'
         f'{"max. guesses":13}: {max(guesses)}\n'
         f'{"min. guesses":13}: {min(guesses)}\n'
         f'{fg.cyan}{"med. msec":13}: {med2:,.1f}{fg.reset}\n'
