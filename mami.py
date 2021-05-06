@@ -16,7 +16,7 @@
     - Knuth algoritm
 
     python 3.9, standard module
-    github.com/stevie7g
+    github.com/stevie7g <2021>
 """
 import time
 import random
@@ -32,7 +32,6 @@ from pathlib import Path
 import pickle
 import bz2
 
-
 class setup_values:
     """ contains global values for initial setup
     """
@@ -46,17 +45,16 @@ class setup_values:
     STATISTIC  = False   # a special mode to determine avg of guesses
     KNUTH      = False   # use the Knuth solver, max 5 guesses (6*4), slowly
     TOA_help   = False   # use the toa_helper file
-    
+
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
     digits   = '1234567890'
     char_set = ''        # will be set later on 'check_setup'
-    
-    toa        = {}      # dict: table_of_answers
+
+    toa        = {}      # feedback dict: table_of_answers
     toa_loaded = False   # toa file is loaded
 
     userSubDirPath = r'Documents\Programming'   # location directory of toa file -- !! CUSTOMIZE HERE !!
     toa_fn         = 'toa.pkl'                  # name of toa file, (pickle_bzip2 file)
-
 
 m = setup_values         # rename for easier use
 
@@ -139,19 +137,19 @@ def get_random_variant(variants):
     """ selects a random element from the 'variants' list
     """
     return random.sample(variants,1)[0]                # string
-    
+
 
 def get_knuth_variant(step, variants, allvariants):
     """ Knuth algorithm, best by worst-case, slowly
     """
     if step > 1:
         if len(variants) != 1:
-            # make the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
-            # return the greatest value of histograms for the answers of allVar -> variants
+            # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
+            # returns the greatest value of histogram for the answers of allVar -> variants
             max_toa = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
-            
+
             # return the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
-            return min(allvariants, key = max_toa) 
+            return min(allvariants, key = max_toa)
         else:
             return variants[0]                  # last variant directly -> guess = code
     elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
@@ -160,7 +158,7 @@ def get_knuth_variant(step, variants, allvariants):
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
 
-@lru_cache(maxsize=128)
+@lru_cache()
 def feedback(guess, code):
     """ tests 'guess' for 'code':
         black pin: char and position are correct
@@ -168,21 +166,21 @@ def feedback(guess, code):
     """
     # if previous calculated and stored in database, use it
     if (guess, code) in m.toa:
-        return m.toa[guess, code]            
-            
+        return m.toa[guess, code]
+
     # forms pairs from both lists [(0. 0.) (1. 1.) ...], then compares both elements
     black = sum(a==b for a,b in zip(guess, code))
 
     # counts frequency of characters / histogram
     # returns the sum of the the smallest match
     white = sum(min(guess.count(c), code.count(c)) for c in m.char_set)     # faster
-    #white = sum((Counter(guess) & Counter(code)).values())                 
-    
+    #white = sum((Counter(guess) & Counter(code)).values())
+
     white -= black                      # avoid double counting of white (even if black)
     m.toa[guess, code] = black, white   # write in table_of_answers database
     return black, white                 # integer
 
-    
+
 def lenVariants():
     """
     """
@@ -191,7 +189,6 @@ def lenVariants():
     else:
         return fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
 
-    
 # ==========================================================
 # Input / Output
 
@@ -200,14 +197,14 @@ def check_setup():
     if m.NUMBERS and (m.CHAR > 10):       m.CHAR = 10
     elif not m.NUMBERS and m.CHAR > 26:   m.CHAR = 26
 
-    # adjust columns
+    # adjusts columns
     if not m.REPETITION and (m.COLUMNS > m.CHAR): m.COLUMNS = m.CHAR
 
-    # make the set of characters
+    # makes the set of characters
     if m.NUMBERS: m.char_set = m.digits[:m.CHAR]     # cuts the string from the left
     else:         m.char_set = m.letters[:m.CHAR]
-    
-    
+
+
 def make_setup():
     """ show and set the global values for the game
     """
@@ -243,9 +240,9 @@ def make_setup():
 
     print(f'{"Solutions":19}: {lenVariants():,.0f}\n'\
         f'{"-"*30}\n')
-    
+
     if m.TOA_help: load_toa_file()
-    elif m.toa_loaded: 
+    elif m.toa_loaded:
         m.toa.clear()
         m.toa_loaded = False
 
@@ -371,6 +368,7 @@ def load_toa_file():
         m.toa = pickle.load(file)
         file.close()
     m.toa_loaded = True
+    m.toa_loaded_len = len(m.toa)
     print(f'{len(m.toa):,.0f} loaded\n')
     #make_table_of_answers()
 
@@ -378,23 +376,14 @@ def load_toa_file():
 def save_toa_file():
     dirPath = Path(Path.home(), m.userSubDirPath)
     filename = Path(dirPath, m.toa_fn)
-    print(f'\nsave table_of_answers ...')
-    file = bz2.BZ2File(filename, 'w')       # compressed with bzip2
-    pickle.dump(m.toa, file)
-    file.close()    
-    print(f'{len(m.toa):,.0f} saved\n',end='')
+    if m.toa_loaded_len < len(m.toa):
+        print(f'\nsave table_of_answers ...')
+        file = bz2.BZ2File(filename, 'w')       # compressed with bzip2
+        pickle.dump(m.toa, file)
+        file.close()
+        print(f'{len(m.toa):,.0f} saved\n',end='')
 
 
-def make_table_of_answers():
-    """ m.CHAR, m.NUMBERS -> m.char_set
-        m.COLUMNS        
-    """
-    allvariants = [''.join(x) for x in product(m.char_set, repeat=m.COLUMNS)]
-    for a in allvariants:
-        for b in allvariants:
-            m.toa[a,b] = (feedback(a,b))
-    
-    
 class fg:     #ansi escape foreground color (30-37)/90-97
     grey    = '\033[90m'
     red     = '\033[91m'
@@ -410,7 +399,6 @@ class fg:     #ansi escape foreground color (30-37)/90-97
     #start = time.perf_counter_ns()
     #print(f'{(time.perf_counter_ns()-start):,.0f} nsec')
     #timeit('"-".join(str(n) for n in range(100))', number=10000)
-
 
 # ==========================================================
 # ==========================================================
@@ -446,7 +434,7 @@ def main():
             else: m.STATISTIC = True            # reset of repeats==1
 
         key = input('\nQuit the game? <y> : ')
-    
+
     if m.toa_loaded: save_toa_file()
     print('\n-- END --\n')
 
