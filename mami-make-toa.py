@@ -87,13 +87,13 @@ def save_toa_file(data, cha='', col=''):
     file = bz2.BZ2File(filename, 'w')
     pickle.dump(data, file)
     file.close()
-    print(f'{fn} with {len(data):,.0f} saved\n',end='')
+    print(f'{fn} with {len(data):,.0f} saved')
 
 # ==========================================================
 def main():
-    print('making the "Table of Answers" ...')
+    print('making the "Table of Answers" ...\n')
     make_table_of_answers()
-    print('\n-- END --\n')
+    print('\n-- END --')
 
 
 if __name__ == '__main__': main()
