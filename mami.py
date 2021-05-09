@@ -12,9 +12,24 @@
     - seperate statistic mode available
 
     Solver Strategy
-    - randomly selected item from possible variants
+    - randomly selected element from possible variants
     - Knuth algoritm
+    - Irving algorithm
+    - Kooi algorithm
 
+    [References]
+        Reto Fahrni, Mastermind Perfekte Strategie dank Computer
+        https://silo.tips/download/mastermind-perfekte-strategie-dank-computer
+        https://www.onlinespiele-sammlung.de/mastermind/about-mastermind.php
+        https://codebreaker-mastermind-superhirn.blogspot.com/
+        Vivian van Oijen, Genetic Algorithms Playing Mastermind
+        http://dspace.library.uu.nl/handle/1874/367005
+        https://dspace.library.uu.nl/bitstream/handle/1874/367005/bachelorthesis_vivianvanoijen.pdf
+        https://www.researchgate.net/publication/228975782_Near-optimal_strategies_for_the_game_of_Logik
+        Barteld Kooi, yet-another-mastermind-strategy
+        https://research.rug.nl/en/publications/yet-another-mastermind-strategy
+        https://pure.rug.nl/ws/portalfiles/portal/9871441/icgamaster.pdf
+              
     python 3.9, standard module
     github.com/stevie7g <2021>
 """
@@ -38,13 +53,13 @@ class setup_values:
     CHAR       = 6
     COLUMNS    = 4
     LIMIT      = 10
+    REPETITION = True    # repetition of a character: yes
+    NUMBERS    = True    # digits (or letters) as character: yes
     AUTOPLAY1  = True    # the code maker, automatic
     AUTOPLAY2  = True    # the code solver, automatic
-    NUMBERS    = True    # digits (or letters) as character: yes
-    REPETITION = True    # repetition of a character: yes
-    STATISTIC  = False   # a special mode to determine avg of guesses
-    KNUTH      = False   # use the Knuth solver, max 5 guesses (6*4), slowly
+    ALGO       = 0       # solver algorithm: Random:0, Kooi:1, Irving:2, Knuth:3
     TOA_help   = False   # use the toa_helper file
+    STATISTIC  = False   # a special mode to determine avg of guesses
 
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
     digits   = '1234567890'
@@ -80,7 +95,7 @@ def run_mastermind():
 
         # gets a guess
         if silent or m.AUTOPLAY2:
-            guess = get_guess(step, variants, allvariants)  # random or Knuth
+            guess = get_guess(step, variants, allvariants)
         else:
             guess = input_seq('<?> :  ')
 
@@ -123,13 +138,15 @@ def gen_variant():
 
 
 def get_guess(step, variants, allvariants):
-    """ selects an item from a list:
-        - randomly
-        - Knuth algoritm
+    """ selects an item from a list of variants:
     """
-    if  not m.KNUTH:
+    if  m.ALGO == 0:
         return get_random_variant(variants)
-    else:
+    elif m.ALGO == 1:
+        return get_kooi_variant(step, variants, allvariants)
+    elif m.ALGO == 2:
+        return get_irvi_variant(step, variants, allvariants)
+    elif m.ALGO == 3:
         return get_knuth_variant(step, variants, allvariants)
 
 
@@ -140,20 +157,95 @@ def get_random_variant(variants):
 
 
 def get_knuth_variant(step, variants, allvariants):
-    """ Knuth algorithm, best by worst-case, slowly
+    """
     """
     if step > 1:
         if len(variants) != 1:
             # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # returns the greatest value of histogram for the answers of allVar -> variants
-            max_toa = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
+            toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
 
-            # return the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
-            return min(allvariants, key = max_toa)
+            # returns the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
+            guess = knuth = min(allvariants, key = toa_key)
+            '''
+            # Knuth, 1st best pattern: '1122' -- does not necessarily have to be calculated
+            fb1 = {}
+            for allV in allvariants:
+                fb0 = [feedback(allV, var) for var in variants]
+                fb1[allV] = Counter(fb0)
+                fb1[allV] = max(fb1[allV].values())
+            toa_key = lambda allV: fb1[allV]
+            guess = knuth = min(allvariants, key = toa_key)
+            print(fb1,guess), input('--')
+            '''
+            return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
     elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
         return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+    else:
+        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+
+
+def get_irvi_variant(step, variants, allvariants):
+    """
+    """
+#    if step > 1:
+    if step > 0:
+        if len(variants) != 1:
+            toa_key = lambda allV: sum(value**2/lenVariants() for value in Counter(feedback(allV, var) for var in variants).values())
+            guess = irvi = min(allvariants, key = toa_key) 
+            '''
+            # Irving, 1st best pattern '1123'
+            fb1 = {} 
+            for allV in allvariants:
+                fb0 = []
+                for var in variants: 
+                    fb0 += [feedback(allV, var)]
+                fb1[allV] = Counter(fb0)
+                sum0 = 0
+                for value in fb1[allV].values():
+                    sum0 += value**2/lenVariants()
+                fb1[allV] = sum0
+            toa_key = lambda allV: fb1[allV]            
+            guess = irvi = min(allvariants, key = toa_key)            
+            print(fb1,guess), input('--')
+            '''
+            return guess
+        else:
+            return variants[0]                  # last variant directly -> guess = code
+    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
+        return '1123'
+        #return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+    else:
+        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+
+
+def get_kooi_variant(step, variants, allvariants):
+    """
+    """
+#    if step > 1:
+    if step > 0:
+        if len(variants) != 1:
+            toa_key = lambda allV: len(Counter(feedback(allV, var) for var in variants))
+            guess = kooi = max(allvariants, key = toa_key) 
+            '''
+            # Kooi, 1st best pattern '1123' or '1234'
+            fb1 = {}
+            for allV in allvariants:
+                fb0 = [feedback(allV, var) for var in variants]
+                fb1[allV] = Counter(fb0)
+                fb1[allV] = len(fb1[allV])
+            toa_key = lambda allV: fb1[allV]
+            guess = kooi = max(allvariants, key = toa_key)
+            print(fb1,guess), input('--')
+            '''
+            return guess
+        else:
+            return variants[0]                  # last variant directly -> guess = code
+    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
+        return '1123'
+        #return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
     else:
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
@@ -221,14 +313,14 @@ def make_setup():
     if x != '': m.COLUMNS = x
     x = input_int(f'{"Repetition":12}{fg.grey}{"["+str(m.REPETITION)+"]":7}{fg.reset}: ')
     if x != '': m.REPETITION = x
+    x = input_int(f'{"Digits use":12}{fg.grey}{"["+str(m.NUMBERS)+"]":7}{fg.reset}: ')
+    if x != '': m.NUMBERS = x
     x = input_int(f'{"Coder autom":12}{fg.grey}{"["+str(m.AUTOPLAY1)+"]":7}{fg.reset}: ')
     if x != '': m.AUTOPLAY1 = x
     x = input_int(f'{"Solver auto":12}{fg.grey}{"["+str(m.AUTOPLAY2)+"]":7}{fg.reset}: ')
     if x != '': m.AUTOPLAY2 = x
-    x = input_int(f'{"Digits use":12}{fg.grey}{"["+str(m.NUMBERS)+"]":7}{fg.reset}: ')
-    if x != '': m.NUMBERS = x
-    x = input_int(f'{"Knuth solver":12}{fg.grey}{"["+str(m.KNUTH)+"]":7}{fg.reset}: ')
-    if x != '': m.KNUTH = x
+    x = input_int('Rand:0 Kooi :1\n'f'{"Irvi:2 Knuth:3":15}{fg.grey}{"<"+str(m.ALGO)+">":4}{fg.reset}: ', min=0, max=3)
+    if x != '': m.ALGO = x
     x = input_int(f'{"TOA file use":12}{fg.grey}{"["+str(m.TOA_help)+"]":7}{fg.reset}: ')
     if x != '': m.TOA_help = x
     x = input_int(f'{"Statistic":12}{fg.grey}{"["+str(m.STATISTIC)+"]":7}{fg.reset}: ')
@@ -252,10 +344,10 @@ def show_setup():
         f'{"Characters":12}: {m.CHAR}\n'
         f'{"Columns":12}: {m.COLUMNS}\n'
         f'{"Repetition":12}: {m.REPETITION}\n'
+        f'{"Digits use":12}: {m.NUMBERS}\n'
         f'{"Coder autom":12}: {m.AUTOPLAY1}\n'
         f'{"Solver auto":12}: {m.AUTOPLAY2}\n'
-        f'{"Digits used":12}: {m.NUMBERS}\n'
-        f'{"Knuth solver":12}: {m.KNUTH}\n'
+        f'{"Solver algo":12}: {m.ALGO}\n'
         f'{"TOA file use":12}: {m.TOA_help}\n'
         f'{"Statistic":12}: {m.STATISTIC}\n'
         f'{"Limit":12}: {m.LIMIT}\n'
@@ -276,11 +368,11 @@ def show_guess(step, guess, variants, result):
         msg05 = ''
     else: msg03 = msg04 = ''
 
-    if black < m.COLUMNS and (lenVari > 9 or m.KNUTH):   # not yet solved and too many variants to display
+    if black < m.COLUMNS and (lenVari > 9 or m.ALGO > 0):   # not yet solved and too many variants to display
         msg = msg01 + msg02 + msg03 + msg05
-    elif black < m.COLUMNS:                   # not resolved yet, displayed variants
+    elif black < m.COLUMNS:                                 # not resolved yet, displayed variants
         msg = msg01 + msg02 + msg03 + msg04 + msg05
-    else:                                     # solved
+    else:                                                   # solved
         msg = (
             f'{fg.green}' + msg01 + f'{fg.reset}\n'
             f'\n{fg.green}-- Done! --{fg.reset}'
@@ -370,7 +462,6 @@ def load_toa_file():
     m.toa_loaded = True
     m.toa_loaded_len = len(m.toa)
     print(f'{len(m.toa):,.0f} loaded\n')
-    #make_table_of_answers()
 
 
 def save_toa_file():
