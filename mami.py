@@ -157,27 +157,22 @@ def get_random_variant(variants):
 
 
 def get_knuth_variant(step, variants, allvariants):
-    """
+    """ Knuth, 1st best pattern: '1122' -- does not necessarily have to be calculated
     """
     if step > 1:
         if len(variants) != 1:
+            #feedb = {allV: max(Counter(feedback(allV, var) for var in variants).values()) for allV in allvariants}
+            #toa_key = lambda allV: feedb[allV]
+            
             # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # returns the greatest value of histogram for the answers of allVar -> variants
             toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
 
             # returns the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
             guess = knuth = min(allvariants, key = toa_key)
-            '''
-            # Knuth, 1st best pattern: '1122' -- does not necessarily have to be calculated
-            fb1 = {}
-            for allV in allvariants:
-                fb0 = [feedback(allV, var) for var in variants]
-                fb1[allV] = Counter(fb0)
-                fb1[allV] = max(fb1[allV].values())
-            toa_key = lambda allV: fb1[allV]
-            guess = knuth = min(allvariants, key = toa_key)
-            print(fb1,guess), input('--')
-            '''
+
+            #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
+            #print(feedb,guess), input('--')
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
@@ -188,64 +183,49 @@ def get_knuth_variant(step, variants, allvariants):
 
 
 def get_irvi_variant(step, variants, allvariants):
+    """ Irving, 1st best pattern '1123'
     """
-    """
-#    if step > 1:
-    if step > 0:
+    if step > 1:
+#    if step > 0:
         if len(variants) != 1:
+            #feedb = {allV: sum(value**2/lenVariants() for value in Counter(feedback(allV, var) for var in variants).values()) for allV in allvariants}
+            #toa_key = lambda allV: feedb[allV]     
             toa_key = lambda allV: sum(value**2/lenVariants() for value in Counter(feedback(allV, var) for var in variants).values())
             guess = irvi = min(allvariants, key = toa_key) 
-            '''
-            # Irving, 1st best pattern '1123'
-            fb1 = {} 
-            for allV in allvariants:
-                fb0 = []
-                for var in variants: 
-                    fb0 += [feedback(allV, var)]
-                fb1[allV] = Counter(fb0)
-                sum0 = 0
-                for value in fb1[allV].values():
-                    sum0 += value**2/lenVariants()
-                fb1[allV] = sum0
-            toa_key = lambda allV: fb1[allV]            
-            guess = irvi = min(allvariants, key = toa_key)            
-            print(fb1,guess), input('--')
-            '''
+            #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
+            #print(feedb,guess), input('--')
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
     elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        return '1123'
-        #return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+        if m.COLUMNS == 3: return '123'
+        if m.COLUMNS == 4: return '1123'
+        if m.COLUMNS == 5: return '11223'
+        if m.COLUMNS == 6: return '112234' 
     else:
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
 
 def get_kooi_variant(step, variants, allvariants):
+    """ Kooi, 1st best pattern '1123' or '1234'
     """
-    """
-#    if step > 1:
-    if step > 0:
+    if step > 1:
+#    if step > 0:
         if len(variants) != 1:
+            #feedb = {allV: len(Counter(feedback(allV, var) for var in variants)) for allV in allvariants}
+            #toa_key = lambda allV: feedb[allV]
             toa_key = lambda allV: len(Counter(feedback(allV, var) for var in variants))
             guess = kooi = max(allvariants, key = toa_key) 
-            '''
-            # Kooi, 1st best pattern '1123' or '1234'
-            fb1 = {}
-            for allV in allvariants:
-                fb0 = [feedback(allV, var) for var in variants]
-                fb1[allV] = Counter(fb0)
-                fb1[allV] = len(fb1[allV])
-            toa_key = lambda allV: fb1[allV]
-            guess = kooi = max(allvariants, key = toa_key)
-            print(fb1,guess), input('--')
-            '''
+            #guess_list = [key for (key, value) in feeb.items() if value == feedb[guess]]
+            #print(feedb,guess), input('--')
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
     elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        return '1123'
-        #return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+        if m.COLUMNS == 3: return '123'
+        if m.COLUMNS == 4: return '1123'
+        if m.COLUMNS == 5: return '11223'
+        if m.COLUMNS == 6: return '112234' 
     else:
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
@@ -255,6 +235,10 @@ def feedback(guess, code):
     """ tests 'guess' for 'code':
         black pin: char and position are correct
         white pin: char is correct, position is wrong
+        
+        call 'feedback' at 6/4:
+        random 1,600
+        knuth, irvi, kooi: 2,000,000
     """
     # if previous calculated and stored in database, use it
     if (guess, code) in m.toa:
