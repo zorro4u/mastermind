@@ -29,6 +29,8 @@
         Barteld Kooi, yet-another-mastermind-strategy
         https://research.rug.nl/en/publications/yet-another-mastermind-strategy
         https://pure.rug.nl/ws/portalfiles/portal/9871441/icgamaster.pdf
+        Lotte Berghman, Efficient solutions for Mastermind using genetic algorithms
+        http://www.rosenbaum-games.de/3m/p1/Mastermind/2009Berghman01.pdf
               
     python 3.9, standard module
     github.com/stevie7g <2021>
