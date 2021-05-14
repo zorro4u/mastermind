@@ -31,7 +31,7 @@
         https://pure.rug.nl/ws/portalfiles/portal/9871441/icgamaster.pdf
         Lotte Berghman, Efficient solutions for Mastermind using genetic algorithms
         http://www.rosenbaum-games.de/3m/p1/Mastermind/2009Berghman01.pdf
-              
+
     python 3.9, standard module
     github.com/stevie7g <2021>
 """
@@ -142,7 +142,7 @@ def gen_variant():
 def get_guess(step, variants, allvariants):
     """ selects an item from a list of variants:
     """
-    if  m.ALGO == 0:
+    if  m.ALGO  == 0:
         return get_random_variant(variants)
     elif m.ALGO == 1:
         return get_kooi_variant(step, variants, allvariants)
@@ -165,7 +165,7 @@ def get_knuth_variant(step, variants, allvariants):
         if len(variants) != 1:
             #feedb = {allVar: max(Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
             #toa_key = lambda allVar: feedb[allVar]
-            
+
             # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # returns the greatest value of histogram for the answers of allVar -> variants
             toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
@@ -191,9 +191,9 @@ def get_irvi_variant(step, variants, allvariants):
 #    if step > 0:
         if len(variants) != 1:
             #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]     
+            #toa_key = lambda allVar: feedb[allVar]
             toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
-            guess = irvi = min(allvariants, key = toa_key) 
+            guess = irvi = min(allvariants, key = toa_key)
             #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
             return guess
         else:
@@ -202,7 +202,7 @@ def get_irvi_variant(step, variants, allvariants):
         if m.COLUMNS == 3: return '123'
         if m.COLUMNS == 4: return '1123'
         if m.COLUMNS == 5: return '11223'
-        if m.COLUMNS == 6: return '112234' 
+        if m.COLUMNS == 6: return '112234'
     else:
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
@@ -216,7 +216,7 @@ def get_kooi_variant(step, variants, allvariants):
             #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
             #toa_key = lambda allVar: feedb[allVar]
             toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
-            guess = kooi = max(allvariants, key = toa_key) 
+            guess = kooi = max(allvariants, key = toa_key)
             #guess_list = [key for (key, value) in feeb.items() if value == feedb[guess]]
             return guess
         else:
@@ -225,7 +225,7 @@ def get_kooi_variant(step, variants, allvariants):
         if m.COLUMNS == 3: return '123'
         if m.COLUMNS == 4: return '1123'
         if m.COLUMNS == 5: return '11223'
-        if m.COLUMNS == 6: return '112234' 
+        if m.COLUMNS == 6: return '112234'
     else:
         return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
 
@@ -235,7 +235,7 @@ def feedback(guess, code):
     """ tests 'guess' for 'code':
         black pin: char and position are correct
         white pin: char is correct, position is wrong
-        
+
         call 'feedback' at 6/4:
         random 1,600
         knuth, irvi, kooi: 2,000,000
@@ -368,7 +368,7 @@ def show_statistics(stati):
     lenVari  = lenVariants()
     guesses  = stati[0]
     duration = stati[1]
-    alltime = stati[2]
+    alltime  = stati[2]
     med1 = median(guesses)
     med2 = median(duration)
     avg1 = sum(guesses)/len(guesses)
