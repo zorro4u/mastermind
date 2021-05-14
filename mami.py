@@ -163,8 +163,8 @@ def get_knuth_variant(step, variants, allvariants):
     """
     if step > 1:
         if len(variants) != 1:
-            #feedb = {allV: max(Counter(feedback(allV, var) for var in variants).values()) for allV in allvariants}
-            #toa_key = lambda allV: feedb[allV]
+            #feedb = {allVar: max(Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
+            #toa_key = lambda allVar: feedb[allVar]
             
             # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # returns the greatest value of histogram for the answers of allVar -> variants
@@ -190,9 +190,9 @@ def get_irvi_variant(step, variants, allvariants):
     if step > 1:
 #    if step > 0:
         if len(variants) != 1:
-            #feedb = {allV: sum(value**2/lenVariants() for value in Counter(feedback(allV, var) for var in variants).values()) for allV in allvariants}
-            #toa_key = lambda allV: feedb[allV]     
-            toa_key = lambda allV: sum(value**2/lenVariants() for value in Counter(feedback(allV, var) for var in variants).values())
+            #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
+            #toa_key = lambda allVar: feedb[allVar]     
+            toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
             guess = irvi = min(allvariants, key = toa_key) 
             #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
             #print(feedb,guess), input('--')
@@ -214,9 +214,9 @@ def get_kooi_variant(step, variants, allvariants):
     if step > 1:
 #    if step > 0:
         if len(variants) != 1:
-            #feedb = {allV: len(Counter(feedback(allV, var) for var in variants)) for allV in allvariants}
-            #toa_key = lambda allV: feedb[allV]
-            toa_key = lambda allV: len(Counter(feedback(allV, var) for var in variants))
+            #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
+            #toa_key = lambda allVar: feedb[allVar]
+            toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
             guess = kooi = max(allvariants, key = toa_key) 
             #guess_list = [key for (key, value) in feeb.items() if value == feedb[guess]]
             #print(feedb,guess), input('--')
