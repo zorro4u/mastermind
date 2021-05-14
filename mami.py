@@ -174,7 +174,7 @@ def get_knuth_variant(step, variants, allvariants):
             guess = knuth = min(allvariants, key = toa_key)
 
             #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
-            #print(feedb,guess), input('--')
+
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
@@ -195,7 +195,6 @@ def get_irvi_variant(step, variants, allvariants):
             toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
             guess = irvi = min(allvariants, key = toa_key) 
             #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
-            #print(feedb,guess), input('--')
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
@@ -219,7 +218,6 @@ def get_kooi_variant(step, variants, allvariants):
             toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
             guess = kooi = max(allvariants, key = toa_key) 
             #guess_list = [key for (key, value) in feeb.items() if value == feedb[guess]]
-            #print(feedb,guess), input('--')
             return guess
         else:
             return variants[0]                  # last variant directly -> guess = code
