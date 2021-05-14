@@ -7,6 +7,7 @@
     python 3.9, standard module
     github.com/stevie7g <2021>
 """
+from collections import Counter
 from itertools import product
 from functools import lru_cache
 from pathlib import Path
@@ -89,8 +90,58 @@ def save_toa_file(data, cha='', col=''):
     file.close()
     print(f'{fn} with {len(data):,.0f} saved')
 
+# ----------------------------------------------------------
+    
+def collection_of_somethings():
+    """
+    """
+    m.CHAR = 6
+    m.COLUMNS = 4
+    check_setup()
+    allvariants = [''.join(x) for x in product(m.char_set, repeat=m.COLUMNS)]
+    variants    = allvariants
+    
+    # dict by pattern
+    # 'ABCD'->1234='1111', 'AABC'->1123='211', 'AABB'->1122='22', 'AAAB'->1112='31', 'AAAA'->1111='4'
+    #dic_pattern = dict.fromkeys((''.join(map(str,sorted(Counter(allVar).values()))) for allVar in allvariants),0)     
+    dic_pattern = {''.join(map(str,sorted(Counter(allVar).values()))):0 for allVar in allvariants}     
+    print(dic_pattern),input('---')
+    
+    # dict by answers
+    #dic_fb = dict.fromkeys(((black, white) for black in range(m.COLUMNS+1) for white in range(m.COLUMNS+1 - black)),0)
+    dic_fb = {(black, white):0 for black in range(m.COLUMNS+1) for white in range(m.COLUMNS+1 - black)}
+    dic_fb.pop((m.COLUMNS-1, 1))
+    print(dic_fb),input('---')
+    
+    # dict by pattern vs. feedback
+    dic_patt_fb = {}
+    #dic_patt_fb = {''.join(map(str, sorted(Counter(allVar).values(),reverse=True))): dict(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants if ''.join(map(str, sorted(Counter(allVar).values(), reverse=True))) not in dic_patt_fb}
+    for allVar in allvariants:
+        pattern = ''.join(map(str, sorted(Counter(allVar).values(), reverse=True)))
+        if pattern not in dic_patt_fb:
+            dic_patt_fb[pattern] = dict(Counter(feedback(allVar, var) for var in variants))
+    print(dic_patt_fb),input('---')    
+        
+    # dict by feedback vs. pattern 
+    dic_fb_patt = {}
+    for allVar in allvariants:
+        pattern = ''.join(map(str, sorted(Counter(allVar).values(), reverse=True)))
+        tmp = dict(Counter(feedback(allVar, var) for var in variants))
+        for ans, count in tmp.items():
+            if ans not in dic_fb_patt:
+                dic_fb_patt[ans] = {pattern:count}
+            else:
+                dic_fb_patt[ans].update({pattern:count})
+                #dic_fb_patt[ans][pattern] = count
+                #for k,v in dic_fb_patt.items():
+                #    if k == ans: v[pattern] = count   
+    tmp.clear()
+    print(dic_fb_patt),input('===')
+    
+
 # ==========================================================
 def main():
+
     print('making the "Table of Answers" ...\n')
     make_table_of_answers()
     print('\n-- END --')
