@@ -397,12 +397,12 @@ def show_statistics(stati):
     avg1 = sum(guesses)/len(guesses)
     avg2 = sum(duration)/len(duration)
     msg  = (
-        f'{fg.cyan}{"med. guesses":13}: {med1:.1f}{fg.reset}\n'
-        f'{"avg. guesses":13}: {avg1:.3f}\n'
+        f'{fg.cyan}{"avg. guesses":13}: {avg1:.3f}{fg.reset}\n'
+        f'{"med. guesses":13}: {med1:.1f}\n'
         f'{"max. guesses":13}: {max(guesses)}\n'
         f'{"min. guesses":13}: {min(guesses)}\n'
-        f'{fg.cyan}{"med. msec":13}: {med2:,.1f}{fg.reset}\n'
-        f'{"avg. msec":13}: {avg2:,.1f}\n'
+        f'{fg.cyan}{"avg. msec":13}: {avg2:,.1f}{fg.reset}\n'
+        f'{"med. msec":13}: {med2:,.1f}\n'
         f'{"max. msec":13}: {max(duration):,.1f}\n'
         f'{"min. msec":13}: {min(duration):,.1f}\n'
         f'{"-"*24}\n'
@@ -533,22 +533,22 @@ def main():
             run_mastermind()
 
         else:
-            repeats = input_int('How many repeats to find averages? : ', min=1, max=5000)
+            repeats = input_int('How many repeats to find averages? : ', min=1, max=100000)
             print()
 
             if repeats == '': repeats = 1
             if repeats == 1:  m.STATISTIC = False
 
             starttime0 = time.perf_counter()
-            stat = [[0]*repeats for _ in range(2)]
+            stat = [[0]*repeats for _ in range(2)]      # makes a zero list [0..repeats][0..repeats]
             for i in range(repeats):
                 starttime  = time.perf_counter()
-                stat[0][i] = run_mastermind()
-                stat[1][i] = (time.perf_counter() - starttime) * 1000   #msec
-            stat.append((time.perf_counter() - starttime0))             #sec
+                stat[0][i] = run_mastermind()                           # 0: number of guesses for a solution
+                stat[1][i] = (time.perf_counter() - starttime) * 1000   # 1: msec, time for a solution
+            stat.append((time.perf_counter() - starttime0))             # 2: sec,  time for all solutions
 
             if m.STATISTIC: show_statistics(stat)
-            else: m.STATISTIC = True            # reset of repeats==1
+            else: m.STATISTIC = True                    # reset of repeats==1
 
         key = input('\nQuit the game? <y> : ')
 
