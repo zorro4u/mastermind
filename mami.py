@@ -375,7 +375,7 @@ def show_guess(step, guess, variants, result):
         msg03 = msg04 = ''
         msg05 = '\n'
 
-    if black < m.COLUMNS and (lenVari > 10 or m.ALGO > 0):  # not yet solved and too many variants to display
+    if black < m.COLUMNS and (lenVari > 9 or m.ALGO > 0):   # not yet solved and too many variants to display
         msg = msg01 + msg02 + msg03 + msg05
     elif black < m.COLUMNS:                                 # not resolved yet, displayed variants
         msg = msg01 + msg02 + msg03 + msg04 + msg05
