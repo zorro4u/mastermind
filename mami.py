@@ -366,8 +366,8 @@ def show_guess(step, guess, variants, result):
     lenVari = len(variants)
     msg01   = f'#{step:02}: "{guess}" '
     msg02   = f'-> b:{black} w:{white}'
-#    if m.AUTOPLAY2:
-    if 1==1:
+    #if m.AUTOPLAY2:        # shows the remaining variants
+    if 1 == 1:
         msg03 = f' | remain. {lenVari:,.0f}'
         msg04 = f': {variants}'
         msg05 = ''
