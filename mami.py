@@ -60,9 +60,9 @@ class setup_values:
     NUMBERS    = True    # digits (or letters) as character: yes
     AUTOPLAY1  = True    # the code maker, automatic
     AUTOPLAY2  = True    # the code solver, automatic
-    AUTOFEEDB  = 1       # feedback for the guess, automatic
+    AUTOFEEDB  = True    # feedback for the guess, automatic
     ALGO       = 0       # solver algorithm: Random:0, Kooi:1, Irving:2, Knuth:3
-    TOA_help   = 0       # use the toa_helper file
+    TOA_help   = False   # use the toa_helper file
     STATISTIC  = False   # a special mode to determine avg of guesses
 
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
@@ -321,11 +321,11 @@ def make_setup():
     if x != '': m.AUTOPLAY1 = x
     x = input_int(f'{"Solver auto":12}{fg.grey}{"["+str(m.AUTOPLAY2)+"]":7}{fg.reset}: ')
     if x != '': m.AUTOPLAY2 = x
-    x = input_int(f'{"Feedback auto":14}{fg.grey}{"["+str(m.AUTOFEEDB)+"]":5}{fg.reset}: ')
+    x = input_int(f'{"Feedbk auto":12}{fg.grey}{"["+str(m.AUTOFEEDB)+"]":7}{fg.reset}: ')
     if x != '': m.AUTOFEEDB = x
     x = input_int('Rand:0 Kooi :1\n'f'{"Irvi:2 Knuth:3":15}{fg.grey}{"<"+str(m.ALGO)+">":4}{fg.reset}: ', min=0, max=3)
     if x != '': m.ALGO = x
-    x = input_int(f'{"TOA file use":13}{fg.grey}{"["+str(m.TOA_help)+"]":6}{fg.reset}: ')
+    x = input_int(f'{"TOA file":12}{fg.grey}{"["+str(m.TOA_help)+"]":7}{fg.reset}: ')
     if x != '': m.TOA_help = x
     x = input_int(f'{"Statistic":12}{fg.grey}{"["+str(m.STATISTIC)+"]":7}{fg.reset}: ')
     if x != '': m.STATISTIC = x
