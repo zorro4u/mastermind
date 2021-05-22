@@ -1,18 +1,18 @@
-# Mastermind (console)
+# Mastermind Game (console)
 
 ### Setup
-- code maker and/or code solver
-- manuel or automatic mode
+- code maker / code solver
+- manual or automatic mode
 - changeable number of characters and columns
-- with or without repetition of characters
+- with or without repetitions of characters
 - digits or letters encoded
-- automatic feedback
+- automatic or manual feedback
 - changeable solver strategy
 - can use an extern helper file with precalculated answers
 - seperate statistic mode available
 
 
-### Solver Strategy
+### Solver Strategies
 - randomly selected element
 - Knuth algoritm
 - Irving algorithm
