@@ -537,7 +537,7 @@ def main():
             print()
 
             if repeats == '': repeats = 1
-            if repeats == 1:  m.STATISTIC = False
+            #if repeats == 1:  m.STATISTIC = False
 
             starttime0 = time.perf_counter()
             stat = [[0]*repeats for _ in range(2)]      # makes a zero list [0..repeats][0..repeats]
