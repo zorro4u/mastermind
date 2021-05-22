@@ -2,11 +2,11 @@
 
     Setup
     - code maker and code solver
-    - manuel or automatic mode
+    - manual or automatic mode
     - changeable number of characters and columns
     - with or without repetition of characters
     - digits or letters encoded
-    - automatic feedback
+    - automatic or manual feedback
     - changeable solver strategy
     - can use an extern helper file with precalculated answers
     - seperate statistic mode available
@@ -41,6 +41,7 @@ from itertools import product, permutations as perm
 from collections import Counter
 from statistics import median
 from math import factorial as fact
+from getpass import getpass
 from os import system
 system("color")
 
@@ -59,8 +60,9 @@ class setup_values:
     NUMBERS    = True    # digits (or letters) as character: yes
     AUTOPLAY1  = True    # the code maker, automatic
     AUTOPLAY2  = True    # the code solver, automatic
+    AUTOFEEDB  = 1       # feedback for the guess, automatic
     ALGO       = 0       # solver algorithm: Random:0, Kooi:1, Irving:2, Knuth:3
-    TOA_help   = False   # use the toa_helper file
+    TOA_help   = 0       # use the toa_helper file
     STATISTIC  = False   # a special mode to determine avg of guesses
 
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
@@ -89,7 +91,7 @@ def run_mastermind():
     if silent or m.AUTOPLAY1:
         code = gen_variant()
     else:
-        code = input_seq('Code : ',1)
+        code = input_seq('Code: ', newline=1, hide=1)
 
     step, black = 0, 0
     while black < m.COLUMNS and step < m.LIMIT:
@@ -99,11 +101,15 @@ def run_mastermind():
         if silent or m.AUTOPLAY2:
             guess = get_guess(step, variants, allvariants)
         else:
-            guess = input_seq('<?> :  ')
+            guess = input_seq('<?> : ')
 
         # gets a feedback for 'guess' vs. 'code'
-        answer = black, white = feedback(guess, code)
-
+        if silent or m.AUTOFEEDB:
+            answer = black, white = feedback(guess, code)
+        else:
+            if m.AUTOPLAY2: print(f'\n#{step:02}: "{guess}"   ',end='')
+            answer = black, white = input_feedback()
+            
         # Filters out those with the same answer pattern for the current attempt from the current variant pool.
         # The current attempt is omitted. The right variant will always be there until the end.
         variants = [vari for vari in variants if feedback(vari,guess) == answer]
@@ -152,10 +158,17 @@ def get_guess(step, variants, allvariants):
         return get_knuth_variant(step, variants, allvariants)
 
 
+def get_1st_variant(variants):
+    """ returns the first element from the 'variants' list / (human linear style)
+    """
+    return variants[0]
+
+
 def get_random_variant(variants):
     """ selects a random element from the 'variants' list
     """
     return random.sample(variants,1)[0]                # string
+    #return get_1st_variant(variants)
 
 
 def get_knuth_variant(step, variants, allvariants):
@@ -265,8 +278,6 @@ def lenVariants():
     else:
         return fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
 
-# ==========================================================
-# Input / Output
 
 def check_setup():
     # max. 10 digits or 26 letters
@@ -280,6 +291,13 @@ def check_setup():
     if m.NUMBERS: m.char_set = m.digits[:m.CHAR]     # cuts the string from the left
     else:         m.char_set = m.letters[:m.CHAR]
 
+    # dict of feedback
+    m.dic_fb = {(black, white):0 for black in range(m.COLUMNS+1) for white in range(m.COLUMNS+1 - black)}
+    m.dic_fb.pop((m.COLUMNS-1, 1))
+
+
+# ==========================================================
+# Input / Output
 
 def make_setup():
     """ show and set the global values for the game
@@ -303,9 +321,11 @@ def make_setup():
     if x != '': m.AUTOPLAY1 = x
     x = input_int(f'{"Solver auto":12}{fg.grey}{"["+str(m.AUTOPLAY2)+"]":7}{fg.reset}: ')
     if x != '': m.AUTOPLAY2 = x
+    x = input_int(f'{"Feedback auto":14}{fg.grey}{"["+str(m.AUTOFEEDB)+"]":5}{fg.reset}: ')
+    if x != '': m.AUTOFEEDB = x
     x = input_int('Rand:0 Kooi :1\n'f'{"Irvi:2 Knuth:3":15}{fg.grey}{"<"+str(m.ALGO)+">":4}{fg.reset}: ', min=0, max=3)
     if x != '': m.ALGO = x
-    x = input_int(f'{"TOA file use":12}{fg.grey}{"["+str(m.TOA_help)+"]":7}{fg.reset}: ')
+    x = input_int(f'{"TOA file use":13}{fg.grey}{"["+str(m.TOA_help)+"]":6}{fg.reset}: ')
     if x != '': m.TOA_help = x
     x = input_int(f'{"Statistic":12}{fg.grey}{"["+str(m.STATISTIC)+"]":7}{fg.reset}: ')
     if x != '': m.STATISTIC = x
@@ -331,6 +351,7 @@ def show_setup():
         f'{"Digits use":12}: {m.NUMBERS}\n'
         f'{"Coder autom":12}: {m.AUTOPLAY1}\n'
         f'{"Solver auto":12}: {m.AUTOPLAY2}\n'
+        f'{"Feedbk auto":12}: {m.AUTOFEEDB}\n'
         f'{"Solver algo":12}: {m.ALGO}\n'
         f'{"TOA file use":12}: {m.TOA_help}\n'
         f'{"Statistic":12}: {m.STATISTIC}\n'
@@ -345,14 +366,16 @@ def show_guess(step, guess, variants, result):
     lenVari = len(variants)
     msg01   = f'#{step:02}: "{guess}" '
     msg02   = f'-> b:{black} w:{white}'
-    msg05   = '\n'
-    if m.AUTOPLAY2:
+#    if m.AUTOPLAY2:
+    if 1==1:
         msg03 = f' | remain. {lenVari:,.0f}'
         msg04 = f': {variants}'
         msg05 = ''
-    else: msg03 = msg04 = ''
+    else: 
+        msg03 = msg04 = ''
+        msg05 = '\n'
 
-    if black < m.COLUMNS and (lenVari > 9 or m.ALGO > 0):   # not yet solved and too many variants to display
+    if black < m.COLUMNS and (lenVari > 10 or m.ALGO > 0):  # not yet solved and too many variants to display
         msg = msg01 + msg02 + msg03 + msg05
     elif black < m.COLUMNS:                                 # not resolved yet, displayed variants
         msg = msg01 + msg02 + msg03 + msg04 + msg05
@@ -391,7 +414,7 @@ def show_statistics(stati):
 def show_code(code=''):
     print(
         #f'{"":6}' + ' '.join(code) + '\n'
-        f'{"code:":6}{"* " *m.COLUMNS}\n'
+        f'{"Code:":6}{"* " *m.COLUMNS}\n'
     )
 
 
@@ -402,7 +425,25 @@ def show_gameover(code):
     )
 
 
+def input_feedback():
+    """ black/white
+    """
+    while True:
+        try:
+            fb = input('<bw>: ')
+            #if len(fb) == 2:                    # max: '99' feedback
+            x = int(fb)
+            if (int(fb[0]), int(fb[1])) in m.dic_fb:
+                return int(fb[0]), int(fb[1])
+            else: 
+                raise ValueError
+        except ValueError: 
+            print('Not a correct input...')
+
+
 def input_int(text, min=0, max=1):
+    """ for setup and statistic repeats
+    """
     while True:
         try:
             x = input(text)
@@ -419,12 +460,13 @@ def input_int(text, min=0, max=1):
             print('Only digits allowed...')
 
 
-def input_seq(text, newline=False):
+def input_seq(text, newline=False, hide=0):
     """ Input code/guess
     """
     while True:
         try:
-            seq = input(text).upper()
+            if hide: seq = getpass(text).upper()
+            else: seq = input(text).upper()            
             if newline: print()
             if len(seq) != m.COLUMNS:
                 raise KeyboardInterrupt('Input to short/long...\n')
@@ -491,7 +533,7 @@ def main():
             run_mastermind()
 
         else:
-            repeats = input_int('How many repeats to find averages? : ', min=1, max=2000)
+            repeats = input_int('How many repeats to find averages? : ', min=1, max=5000)
             print()
 
             if repeats == '': repeats = 1
