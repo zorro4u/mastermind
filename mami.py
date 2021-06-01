@@ -73,7 +73,10 @@ class setup_values:
     toa_loaded = False   # toa file is loaded
 
     userSubDirPath = r'Documents\Programming'   # location directory of toa file -- !! CUSTOMIZE HERE !!
-    toa_fn         = 'toa.pkl'                  # name of toa file, (bzip2-compressed pickle file)
+    toa_fn         = 'toa.pkl'                  # name of toa file
+
+    bz2_compressed = False                      # load/save bzip2-compressed pickle file (.bz2)    
+    if bz2_compressed: toa_fn += '.bz2'
 
 m = setup_values         # rename for easier use
 
@@ -92,6 +95,8 @@ def run_mastermind():
         code = gen_variant()
     else:
         code = input_seq('Code: ', newline=1, hide=1)
+    
+    if m.AUTOPLAY1 and not m.AUTOPLAY2: show_code()
 
     step, black = 0, 0
     while black < m.COLUMNS and step < m.LIMIT:
@@ -101,7 +106,7 @@ def run_mastermind():
         if silent or m.AUTOPLAY2:
             guess = get_guess(step, variants, allvariants)
         else:
-            guess = input_seq('<?> : ')
+            guess = input_seq(f'{"-"*30}\n<?> : ')
 
         # gets a feedback for 'guess' vs. 'code'
         if silent or m.AUTOFEEDB:
@@ -115,6 +120,7 @@ def run_mastermind():
         variants = [vari for vari in variants if feedback(vari,guess) == answer]
 
         if not silent: show_guess(step, guess, variants, answer)
+
     else:
         if black != m.COLUMNS and not silent: show_gameover(code)
 
@@ -172,76 +178,132 @@ def get_random_variant(variants):
 
 
 def get_knuth_variant(step, variants, allvariants):
-    """ Knuth, 1st best pattern: '1122' -- does not necessarily have to be calculated
+    """ makes a table of answers, 1st: len(toa)=allvariants^2 ! ... 4/6: 1296^2 = 1_679_616 x call feedback()
+        returns the greatest value of histogram for the answers of allVar -> variants
+        returns the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
+        Knuth, 1st best pattern 4/6: '1122' -- does not necessarily have to be calculated
     """
-    if step > 1:
-        if len(variants) != 1:
-            #feedb = {allVar: max(Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
+    # special first guess
+    if step == 1 and m.COLUMNS in range(3,9) and m.CHAR > 2 and m.REPETITION:
+        s = m.char_set[:4]
+        if m.COLUMNS == 3:    return s[0]   + s[1]   + s[2]
+        if m.COLUMNS == 4:
+            if m.CHAR > 6:    return s[0]   + s[1]   + s[2] + s[3]
+            elif m.CHAR > 4:  return s[0]*2 + s[1]*2
+            elif m.CHAR == 4: return s[0]*2 + s[1]   + s[2]
+            else:             return s[0]*3 + s[1]
+        if m.COLUMNS == 5:
+            if m.CHAR < 3:    return s[0]*4 + s[1]
+            elif m.CHAR < 5:  return s[0]*3 + s[1]   + s[2]
+            elif m.CHAR & 1:  return s[0]*2 + s[1]*2 + s[2]
+            else:             return s[0]*2 + s[1]   + s[2] + s[3]
+        if m.COLUMNS == 6:
+            if m.CHAR < 4:    return s[0]*5 + s[1]
+            elif m.CHAR == 4: return s[0]*3 + s[1]*2 + s[2]
+            elif m.CHAR == 5: return s[0]*4 + s[1]   + s[2]
+        if m.COLUMNS == 7:
+            if m.CHAR < 3:    return s[0]*6 + s[1]
+            elif m.CHAR == 3: return s[0]*4 + s[1]*2 + s[2]
+            elif m.CHAR == 4: return s[0]*3 + s[1]*2 + s[2]*2
+        if m.COLUMNS == 8:
+            if m.CHAR < 3:    return s[0]*7 + s[1]
+            elif m.CHAR == 3: return s[0]*5 + s[1]*2 + s[2]
+        # step.1
+        # 4/3: 11_12, 4: 11_23, 5&6: '11_22', >6: '1234'
+        # 5/3&4: 111_23, >4 odd: '112_23' even: '1_1234'
+        # 6/3: 11111_2, 4: 111_223, 5: 111_123
+        # 7/3: 1111_223 4: 111_2233
+        # 8/3: 11111_223
 
-            # makes the table of answers, 1st: len(toa)=allvariants^2 ! ... 6/4: 1296^2 = 1_679_616 x call feedback()
-            # returns the greatest value of histogram for the answers of allVar -> variants
-            toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
-
-            # returns the first variant with the smallest maxi-value of the set: (allvariants : maxi-value)
-            guess = knuth = min(allvariants, key = toa_key)
-
-            #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
-
-            return guess
-        else:
-            return variants[0]                  # last variant directly -> guess = code
-    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        return ''.join(map(str,[1 if i < m.COLUMNS/2 else 2 for i in range(m.COLUMNS)]))
+    if len(variants) != 1:
+        #feedb = {allVar: max(Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
+        #toa_key = lambda allVar: feedb[allVar]
+        toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
+        guess = knuth = min(allvariants, key = toa_key)
+        #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
+        #print(len(guess_list),guess_list[:100])
+        return guess
     else:
-        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+        return variants[0]      # last variant directly -> guess = code
 
 
 def get_irvi_variant(step, variants, allvariants):
-    """ Irving, 1st best pattern '1123'
+    """ Irving, 1st best pattern 4/6: '1123'
     """
-    if step > 1:
-#    if step > 0:
-        if len(variants) != 1:
-            #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
-            toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
-            guess = irvi = min(allvariants, key = toa_key)
-            #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
-            return guess
-        else:
-            return variants[0]                  # last variant directly -> guess = code
-    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        if m.COLUMNS == 3: return '123'
-        if m.COLUMNS == 4: return '1123'
-        if m.COLUMNS == 5: return '11223'
-        if m.COLUMNS == 6: return '112234'
+    # special first guess
+    if step == 1 and m.COLUMNS in range(3,5) and m.CHAR in range(3,10) and m.REPETITION:
+        s = m.char_set[:4]
+        if m.COLUMNS == 3:
+            if m.CHAR == 9:  return    s[0]   + s[2]   + s[3]
+            elif m.CHAR > 5: return    s[1]   + s[2]   + s[3]
+            elif m.CHAR > 3: return    s[0]   + s[1]   + s[2]
+            else:            return    s[0]*2 + s[2]
+        if m.COLUMNS == 4:
+            if m.CHAR > 6:    return s[0]   + s[1]   + s[2]   + s[3]
+            elif m.CHAR == 6: return s[2]   + s[3]   + s[0]*2
+            elif m.CHAR > 3:  return s[2]   + s[0]   + s[3]   + s[0]
+            else:             return s[0]*2 + s[1]*2
+        # step.1
+        # 3/3: 113, 4&5: 123, 6-8: 234 7-9: 134
+        # 4/3: 1122, 4/4: 3141, 4/5: 3141, 4/6: 3411, 4/7: 1234, 4/8: 1234, 4/9: 1234
+        # 5/3: 12223, 5/4: 11223, 5/5: 31144, 5/6: 22331, 5/7: 14142, 5/8: 11234
+        # 6/3: 133332, 6/4: 111223, 6/5: 221133, 6/6:
+        # 7/3: 2222113, 7/4: 1112223
+        # 8/3: 32121111
+
+    if len(variants) != 1:
+        #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
+        #toa_key = lambda allVar: feedb[allVar]
+        toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
+        guess = irvi = min(allvariants, key = toa_key)
+        #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
+        #print(len(guess_list),guess_list[:100])
+        return guess
     else:
-        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+        return variants[0]      # last variant directly -> guess = code
 
 
 def get_kooi_variant(step, variants, allvariants):
-    """ Kooi, 1st best pattern '1123' or '1234'
+    """ Kooi, 1st best pattern 4/6: '1123' or '1234'
     """
-    if step > 1:
-#    if step > 0:
-        if len(variants) != 1:
-            #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
-            toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
-            guess = kooi = max(allvariants, key = toa_key)
-            #guess_list = [key for (key, value) in feeb.items() if value == feedb[guess]]
-            return guess
+    # special first guess
+    if step == 1 and m.COLUMNS > 2 and m.REPETITION:
+        s = m.char_set[:4]
+        if not(m.COLUMNS & 1):      # even = (value & 1) = (value % 2) == 0
+            return s[0] * (m.COLUMNS//2) + s[1] * (m.COLUMNS//2-1) + s[2]
         else:
-            return variants[0]                  # last variant directly -> guess = code
-    elif m.NUMBERS:                             # special first guess for digits/letters    TODO: case of REPETITION=False ?
-        if m.COLUMNS == 3: return '123'
-        if m.COLUMNS == 4: return '1123'
-        if m.COLUMNS == 5: return '11223'
-        if m.COLUMNS == 6: return '112234'
-    else:
-        return ''.join('A' if i < m.COLUMNS/2 else 'B' for i in range(m.COLUMNS))
+            return s[0] * ((m.COLUMNS-1)//2) + s[1] * ((m.COLUMNS-1)//2) + s[2]           
+        # step.1
+        # 4: 1123
+        # 5: 11223
+        # 6: 111223
+        # 7: 1112223
+        # 8: 11112223
 
+    if len(variants) != 1:
+        #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
+        #toa_key = lambda allVar: feedb[allVar]
+        toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
+        guess = kooi = max(allvariants, key = toa_key)
+        #guess_list = [key for (key, value) in feedb.items() if value == feedb[guess]]
+        #print(len(guess_list),guess_list[:100])
+        return guess
+    else:
+        return variants[0]      # last variant directly -> guess = code
+
+""" # brute-force algorithms:
+    # columns/characters:(solutions w/ rep.) --> ^2 = answers
+    # 2/26:(700)  3/26:(17,500)
+    # 4/9:(6,500) 4/10:(10,000).. 4/15:(50,600).. 4/26:(457,000)
+    # 5/6:(7,800)_ 5/7:(16,800)__ 5/8:(32,800) 5/9:(59,000)
+    # 6/4:(4,100)  6/5:(15,600)   6/6:(46,700)
+    # 7/3:(2,200)  7/4:(16,400)   7/5:(78,100)
+    # 8/3:(6,500)  8/4:(65,500)
+    # 9/2:(500)    9/3:(19,700)
+    # 8Tsd  -> 64Mio, 1GB file
+    # 16Tsd -> 256Mio
+    # 33Tsd -> 1Mrd
+"""
 
 @lru_cache()
 def feedback(guess, code):
@@ -309,10 +371,10 @@ def make_setup():
     print()
     if x.lower() != 'y': return
 
-    x = input_int(f'{"Characters":12}{fg.grey}{"<"+str(m.CHAR)+">":7}{fg.reset}: ', min=1, max=26)
-    if x != '': m.CHAR = x
     x = input_int(f'{"Columns":12}{fg.grey}{"<"+str(m.COLUMNS)+">":7}{fg.reset}: ', min=1, max=100)
     if x != '': m.COLUMNS = x
+    x = input_int(f'{"Characters":12}{fg.grey}{"<"+str(m.CHAR)+">":7}{fg.reset}: ', min=1, max=26)
+    if x != '': m.CHAR = x
     x = input_int(f'{"Repetition":12}{fg.grey}{"["+str(m.REPETITION)+"]":7}{fg.reset}: ')
     if x != '': m.REPETITION = x
     x = input_int(f'{"Digits use":12}{fg.grey}{"["+str(m.NUMBERS)+"]":7}{fg.reset}: ')
@@ -345,8 +407,8 @@ def make_setup():
 
 def show_setup():
     print(
-        f'{"Characters":12}: {m.CHAR}\n'
         f'{"Columns":12}: {m.COLUMNS}\n'
+        f'{"Characters":12}: {m.CHAR}\n'
         f'{"Repetition":12}: {m.REPETITION}\n'
         f'{"Digits use":12}: {m.NUMBERS}\n'
         f'{"Coder autom":12}: {m.AUTOPLAY1}\n'
@@ -477,14 +539,18 @@ def input_seq(text, newline=False, hide=0):
 
 
 def load_toa_file():
+    if m.toa_loaded: return
+    print(f'loading table_of_answers ...')
     dirPath = Path(Path.home(), m.userSubDirPath)
     filename = Path(dirPath, m.toa_fn)
-    if m.toa_loaded: return
-    print(f'load table_of_answers ...')
     if Path(filename).is_file():
-        file = bz2.BZ2File(filename, 'r')
-        m.toa = pickle.load(file)
-        file.close()
+        if m.bz2_compressed:
+            file = bz2.BZ2File(filename, 'r')
+            m.toa = pickle.load(file)
+            file.close()
+        else:
+            with open(filename,'rb') as file:
+                m.toa = pickle.load(file)
     m.toa_loaded = True
     m.toa_loaded_len = len(m.toa)
     print(f'{len(m.toa):,.0f} loaded\n')
@@ -494,10 +560,14 @@ def save_toa_file():
     dirPath = Path(Path.home(), m.userSubDirPath)
     filename = Path(dirPath, m.toa_fn)
     if m.toa_loaded_len < len(m.toa):
-        print(f'\nsave table_of_answers ...')
-        file = bz2.BZ2File(filename, 'w')       # compressed with bzip2
-        pickle.dump(m.toa, file)
-        file.close()
+        print(f'\nsaving table_of_answers ...')
+        if m.bz2_compressed:
+            file = bz2.BZ2File(filename, 'w')       # compressed with bzip2
+            pickle.dump(m.toa, file)
+            file.close()
+        else:
+            with open(filename,'wb') as file:
+                pickle.dump(m.toa, file)
         print(f'{len(m.toa):,.0f} saved\n',end='')
 
 
@@ -535,9 +605,7 @@ def main():
         else:
             repeats = input_int('How many repeats to find averages? : ', min=1, max=100000)
             print()
-
             if repeats == '': repeats = 1
-            #if repeats == 1:  m.STATISTIC = False
 
             starttime0 = time.perf_counter()
             stat = [[0]*repeats for _ in range(2)]      # makes a zero list [0..repeats][0..repeats]
@@ -547,8 +615,7 @@ def main():
                 stat[1][i] = (time.perf_counter() - starttime) * 1000   # 1: msec, time for a solution
             stat.append((time.perf_counter() - starttime0))             # 2: sec,  time for all solutions
 
-            if m.STATISTIC: show_statistics(stat)
-            else: m.STATISTIC = True                    # reset of repeats==1
+            show_statistics(stat)
 
         key = input('\nQuit the game? <y> : ')
 
