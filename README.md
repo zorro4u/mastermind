@@ -14,7 +14,7 @@
 
 ### Solver Strategies
 - randomly selected element
-- Knuth algoritm
+- Knuth algorithm
 - Irving algorithm
 - Kooi algorithm
  
