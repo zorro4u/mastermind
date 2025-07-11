@@ -1,36 +1,51 @@
 # Mastermind Game (console)
 
+aka codebreaker / superhirn
+
 ### Setup
 - code maker / code solver
 - manual or automatic mode
 - changeable number of characters and columns
-- with or without repetitions of characters
+- with or without repetition of characters
 - digits or letters encoded
-- automatic or manual feedback
+- automatic feedback
+
+#### Statistic mode
 - changeable solver strategy
 - can use an extern helper file with precalculated answers
-- seperate statistic mode available
 
-
-### Solver Strategies
-- randomly selected element
-- Knuth algorithm
+#### Solver strategies
+- randomly selected
+- Knuth algoritm
 - Irving algorithm
 - Kooi algorithm
- 
- 
-### Screenshots
- 
-![MaMi_single](/screenshots/MaMi_single.png)
- 
- 
-![MaMi_stat](/screenshots/MaMi_stat.png)
- 
- 
-![MaMi_core](/screenshots/MaMi_core.png)
- 
+ <br>
 
- 
 #
-...
-_for learning github & python 3.9 --- (2021)_
+### Screenshots
+![MaMi_single](/screenshots/MaMi_single.png)
+<br>
+<br>
+![MaMi_single](/screenshots/MaMi_single_1.png)
+<br>
+<br>
+![MaMi_stat](/screenshots/MaMi_stat.png)
+
+#
+### References
+- Reto Fahrni, Mastermind Perfekte Strategie dank Computer <br>
+  https://silo.tips/download/mastermind-perfekte-strategie-dank-computer
+- https://www.onlinespiele-sammlung.de/mastermind/about-mastermind.php
+- https://codebreaker-mastermind-superhirn.blogspot.com/
+- Vivian van Oijen, Genetic Algorithms Playing Mastermind <br>
+  http://dspace.library.uu.nl/handle/1874/367005
+- https://dspace.library.uu.nl/bitstream/handle/1874/367005/bachelorthesis_vivianvanoijen.pdf
+- https://www.researchgate.net/publication/228975782_Near-optimal_strategies_for_the_game_of_Logik
+- Barteld Kooi, yet-another-mastermind-strategy <br>
+  https://research.rug.nl/en/publications/yet-another-mastermind-strategy
+- https://pure.rug.nl/ws/portalfiles/portal/9871441/icgamaster.pdf
+- Lotte Berghman, Efficient solutions for Mastermind using genetic algorithms <br>
+  http://www.rosenbaum-games.de/3m/p1/Mastermind/2009Berghman01.pdf
+
+#
+<2021> zorro4u
