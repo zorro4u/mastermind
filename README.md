@@ -48,4 +48,4 @@ aka codebreaker / superhirn
   http://www.rosenbaum-games.de/3m/p1/Mastermind/2009Berghman01.pdf
 
 #
-<2021> zorro4u
+*<2021> **GitHub:** [zorro4u](https://github.com/zorro4u)*
