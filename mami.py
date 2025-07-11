@@ -15,8 +15,9 @@ system("color")
 
 
 class setup_values:
-    """ contains global values for initial setup
+    """ contains global values
     """
+    # initial setup
     COLUMNS    = 4
     CHAR       = 6
     LIMIT      = 10
@@ -30,29 +31,28 @@ class setup_values:
     ALL        = False   # all algoritm in statistic mode
     TOA_help   = False   # use the toa_helper file // no speed advantage :-(
     RUNS       = 1000    # runs for statistic mode
+    TOA_name   = 'toa'   # name of toa file (w/o .extension),  (bzip2-compressed .bz2)
+    userSubDirPath = r'Documents\Code'   # location, directory of local toa file
 
+    # common use
     letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
     digits   = '1234567890'
     char_set = ''        # will be set later on 'check_setup'
+    max_variants = 10**7 # cut the range
+    error_ct = 0
 
-    max_variants = 10**7 # cut the complexity and set columns down
-
-    toa        = {}      # feedback dict: table_of_answers
-    toa_loaded = False   # toa file is loaded
-    toa_loaded_len = 0
-
-    userSubDirPath = r'Documents\Code'   # location directory of toa file -- !! CUSTOMIZE HERE !!
-    toa_name       = 'toa'     # name of toa file (name w/o .extension),  (bzip2-compressed .bz2)
-
+    # statistic mode
     algo_set = {
         0 : "random",
         1 : "Kooi",
         2 : "Irving",
         3 : "Knuth"
     }
-    code_pool = []  # for statistic mode
+    toa_loaded_len = 0
+    toa_loaded = False   # toa file is loaded
+    toa        = {}      # feedback dict: table_of_answers
+    code_pool  = []
     code = ""
-    error_ct = 0
 
 
 m = setup_values         # rename for easier use
@@ -626,9 +626,9 @@ def load_toa_file():
     """
     if m.toa_loaded: return
 
-    m.toa_name += '.bz2'
+    m.TOA_name += '.bz2'
     dirPath = Path(Path.home(), m.userSubDirPath)
-    filename = Path(dirPath, m.toa_name)
+    filename = Path(dirPath, m.TOA_name)
 
     print(f'load table_of_answers ... ', end='')
 
@@ -645,7 +645,7 @@ def load_toa_file():
 
 def save_toa_file():
     dirPath = Path(Path.home(), m.userSubDirPath)
-    filename = Path(dirPath, m.toa_name)
+    filename = Path(dirPath, m.TOA_name)
     if m.toa_loaded_len < len(m.toa):
         print(f'\nsave table_of_answers ... ', end='')
         file = bz2.BZ2File(filename, 'w')
