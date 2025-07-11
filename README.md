@@ -1,3 +1,6 @@
+![Python](https://img.shields.io/badge/python-3.13.2-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-yellow)
+
 # Mastermind Game (console)
 
 aka codebreaker / superhirn
@@ -23,13 +26,9 @@ aka codebreaker / superhirn
 
 #
 ### Screenshots
-![MaMi_single](/screenshots/MaMi_single.png)
-<br>
-<br>
-![MaMi_single](/screenshots/MaMi_single_1.png)
-<br>
-<br>
-![MaMi_stat](/screenshots/MaMi_stat.png)
+<img width="240" alt="mastermind_single" src="/screenshots/MaMi_single.png">
+<img width="240" alt="mastermind_single1" src="/screenshots/MaMi_single_1.png">
+<img width="240" alt="mastermind_stat" src="/screenshots/MaMi_stat.png">
 
 #
 ### References
