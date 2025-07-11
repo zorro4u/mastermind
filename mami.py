@@ -245,9 +245,9 @@ def first_pattern(scheme=0):
         (0): '1123', '11223'
         (1): '1122', '11223'
     """
+    even = not m.COLUMNS % 2    # even number of columns
     pattern = []
     i = 0
-    even = not m.COLUMNS % 2    # even number of columns
 
     for pos in range(m.COLUMNS):
         pattern.append(m.char_set[i])
