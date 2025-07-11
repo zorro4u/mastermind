@@ -41,8 +41,7 @@ class setup_values:
     toa_loaded = False   # toa file is loaded
     toa_loaded_len = 0
 
-    #userSubDirPath = r'Documents\Code'   # location directory of toa file -- !! CUSTOMIZE HERE !!
-    userSubDirPath = r'C:\Users\Steffen\Documents\code\Github\mastermind'
+    userSubDirPath = r'Documents\Code'   # location directory of toa file -- !! CUSTOMIZE HERE !!
     toa_name       = 'toa'     # name of toa file (name w/o .extension),  (bzip2-compressed .bz2)
 
     algo_set = {
