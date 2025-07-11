@@ -173,8 +173,10 @@ def get_kooi_variant(step, variants, allvariants):
             #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
             #toa_key = lambda allVar: feedb[allVar]
             toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
-            attempt = kooi = max(allvariants, key = toa_key)
+
+            attempt = max(allvariants, key = toa_key)
             #attempt_list = [key for (key, value) in feeb.items() if value == feedb[attempt]]
+
             return attempt
         else:
             return variants[0]   # last variant directly -> attempt = code
@@ -190,8 +192,10 @@ def get_irvi_variant(step, variants, allvariants):
             #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
             #toa_key = lambda allVar: feedb[allVar]
             toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
-            attempt = irvi = min(allvariants, key = toa_key)
+
+            attempt = min(allvariants, key = toa_key)
             #attempt_list = [key for (key, value) in feedb.items() if value == feedb[attempt]]
+
             return attempt
         else:
             return variants[0]   # last variant directly -> attempt = code
@@ -214,7 +218,7 @@ def get_knuth_variant(step, variants, allvariants):
 
             # returns the first variant with the smallest maxi-value of the set:
             # (allvariants : maxi-value)
-            attempt = knuth = min(allvariants, key = toa_key)
+            attempt = min(allvariants, key = toa_key)
 
             #attempt_list = [key for (key, value) in feedb.items() if value == feedb[attempt]]
 
@@ -231,17 +235,17 @@ def first_pattern(scheme=0):
         (1): '1122', '11223'
     """
     if not m.REPETITION:
-        return ''.join(map(str,[m.char_set[pos] for pos in range(m.COLUMNS)]))
+        return ''.join(map(str,[m.char_set[col] for col in range(m.COLUMNS)]))
 
     # with repetition
     even = not m.COLUMNS % 2    # even number of columns
     pattern = []
     i = 0
-    for pos in range(m.COLUMNS):
+    for col in range(m.COLUMNS):
         pattern.append(m.char_set[i])
 
         # odd column position, next character
-        if pos % 2:
+        if col % 2:
             i += 1
 
     # array -> string
