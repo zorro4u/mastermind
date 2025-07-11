@@ -1,39 +1,6 @@
-.org
-_info/
-_py/
 _tools/
-data/*.*
-data/*/*/*.jpg
-data/*/*/*.webp
-data/*/*/*.png
-download/work/
-upload/*.php
-upload/files/*.php
-test/
-fontawesome*/
-bootstrap*/
-vendor/
-yiisite/
-laravelsite/
-
-.gitignore_X
-.htaccess*
-*.ffs_db
-*.ffs_lock
-*.db
-*.pdf
-robots*.txt
-google*.html
-sitemap.xml
-*OLD*
 *.code-workspace
-about.txt
-account_data.php
 *toa.*
-
-pipfile
-pyrightconfig.json
-requirements.txt
 
 
 ##------------------##
@@ -64,9 +31,6 @@ nbproject
 # sublime text project / workspace files
 *.sublime-project
 *.sublime-workspace
-
-# visual studio code project files
-.vscode
 
 # windows thumbnail cache
 Thumbs.db
@@ -209,6 +173,7 @@ $RECYCLE.BIN/
 
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

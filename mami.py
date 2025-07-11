@@ -74,14 +74,14 @@ def run_mastermind():
         code = m.code
     elif m.AUTOPLAY1:
         code = gen_variant()
-        print(f'{"code:":6}{"*" *m.COLUMNS}\n')
+        print(f'{"code:":6}{"*" * m.COLUMNS}\n')
     elif not m.AUTOPLAY1:
         code = input_seq('Code: ', True)
 
         # hide the input
         up = f'\033[1A'
         right = f'\033[6C'  # len(input_str)
-        code_str = f'{"*" *m.COLUMNS}'
+        code_str = f'{"*" * m.COLUMNS}'
         hide_code = up + right + code_str + '\n'
         print(hide_code)
 
@@ -360,7 +360,7 @@ def show_setup():
             f'{"Algo_all":14}: {m.ALL}\n'
             f'{"TOA_file":14}: {m.TOA_help}\n'
             f'{"Runs":14}: {m.RUNS:,}\n'
-            , end ='')
+            , end='')
 
     print(
         f'{"Solutions":14}: {lenVariants():,.0f}\n'
