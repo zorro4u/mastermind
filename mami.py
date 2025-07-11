@@ -664,22 +664,21 @@ def run_statistic():
     stat = [[0]*repeats for _ in range(2)]
 
 
-    """ Fortschritt-Anzeige """
-    q = 0
+    ''' Progress indicator '''
+    progress = 0
     step = repeats // 10     # 10% Step
     print("*****", end="", flush=True)
 
-    for i in range(repeats):
-        # Fortschrittsanzeige / Progress indicator
-        q += 1
-        if q == step:
-            q = 0
+    for run in range(repeats):
+        progress += 1
+        if progress == step:
+            progress = 0
             print("**", end="", flush=True)  # 25 characters in total
 
-        m.code = m.code_pool[i]
+        m.code = m.code_pool[run]
         starttime  = time.perf_counter()
-        stat[0][i] = run_mastermind()
-        stat[1][i] = (time.perf_counter() - starttime) * 1000   #msec
+        stat[0][run] = run_mastermind()
+        stat[1][run] = (time.perf_counter() - starttime) * 1000   #msec
 
     stat.append((time.perf_counter() - starttime0))             #sec
     print()
@@ -824,7 +823,7 @@ def main():
             run_mastermind()
 
         else:
-            for i in range(m.RUNS):
+            for run in range(m.RUNS):
                 m.code_pool.append(gen_variant())
 
             if m.ALL:
