@@ -4,7 +4,7 @@ import time
 import random
 from itertools import product, permutations as perm
 from collections import Counter
-from statistics import median, mode, multimode
+from statistics import median, multimode
 from math import factorial as fact
 from functools import lru_cache
 from pathlib import Path
@@ -14,35 +14,35 @@ from os import system
 system("color")
 
 
-class setup_values:
+class SetupValues:
     """ contains global values
     """
     # initial setup
-    COLUMNS    = 4
-    CHAR       = 6
-    LIMIT      = 10
-    REPETITION = True    # repetition of a character: yes
-    NUMBERS    = True    # digits (or letters) as character: yes
-    AUTOPLAY1  = True    # the code maker, automatic
-    AUTOPLAY2  = False   # the code solver, automatic
-    SHOW_HINT  = False   # give a hint in manual solver mode
-    STATISTIC  = False   # a special mode to determine avg of attemptes
-    ALGO       = 0       # solver algorithm: Random:0, Kooi:1, Irving:2, Knuth:3
-    ALL        = False   # all algoritm in statistic mode
-    TOA_help   = False   # use the toa_helper file // no speed advantage :-(
-    RUNS       = 1000    # runs for statistic mode
-    TOA_name   = 'toa'   # name of toa file (w/o .extension),  (bzip2-compressed .bz2)
+    columns    = 4
+    char       = 6
+    limit      = 10
+    repetition = True    # repetition of a character: yes
+    numbers    = True    # digits (or letters) as character: yes
+    autocoder  = True    # the code maker, automatic
+    autosolver = False   # the code solver, automatic
+    show_hint  = False   # give a hint in manual solver mode
+    statistic  = False   # a special mode to determine avg of attemptes
+    algo       = 0       # solver algorithm: Random:0, Kooi:1, Irving:2, Knuth:3
+    algo_all   = False   # all algoritm in statistic mode
+    toa_help   = False   # use the toa_helper file // no speed advantage :-(
+    stat_runs  = 1000    # runs for statistic mode
+    TOA_NAME   = 'toa'   # name of toa file (w/o .extension),  (bzip2-compressed .bz2)
     userSubDirPath = r'Documents\Code'   # location, directory of local toa file
 
     # common use
-    letters  = 'abcdefghijklmnopqrstuvwxyz'.upper()
-    digits   = '1234567890'
+    LETTERS  = 'abcdefghijklmnopqrstuvwxyz'.upper()
+    DIGITS   = '1234567890'
     char_set = ''        # will be set later on 'check_setup'
-    max_variants = 10**7 # cut the range
+    MAX_VARIANTS = 10**7 # cut the range
     error_ct = 0
 
     # statistic mode
-    algo_set = {
+    ALGO_SET = {
         0 : "random",
         1 : "Kooi",
         2 : "Irving",
@@ -50,19 +50,20 @@ class setup_values:
     }
     toa_loaded_len = 0
     toa_loaded = False   # toa file is loaded
+    toa_fn     = ''
     toa        = {}      # feedback dict: table_of_answers
     code_pool  = []
     code = ""
 
 
-m = setup_values         # rename for easier use
+m = SetupValues         # rename for easier use
 
 
 # ==========================================================
 def run_mastermind():
     """ Mastermind core routine
     """
-    silent = m.STATISTIC
+    silent = m.statistic
 
     # determines all solutions
     allvariants = gen_allvariants()
@@ -72,25 +73,26 @@ def run_mastermind():
     # generates a random code to be found
     if silent:
         code = m.code
-    elif m.AUTOPLAY1:
+    elif m.autocoder:
         code = gen_variant()
-        print(f'{"code:":6}{"*" * m.COLUMNS}\n')
-    elif not m.AUTOPLAY1:
+        print(f'{"code:":6}{"*" * m.columns}\n')
+    elif not m.autocoder:
         code = input_seq('Code: ', True)
 
         # hide the input
-        up = f'\033[1A'
-        right = f'\033[6C'  # len(input_str)
-        code_str = f'{"*" * m.COLUMNS}'
+        up = '\033[1A'
+        right = '\033[6C'  # len(input_str)
+        code_str = f'{"*" * m.columns}'
         hide_code = up + right + code_str + '\n'
         print(hide_code)
 
-    step, black = 0, 0
-    while black < m.COLUMNS and step < m.LIMIT:
+
+    step = black = 0
+    while black < m.columns and step < m.limit:
         step += 1
 
-        # gets a attempt
-        if silent or m.AUTOPLAY2:
+        # gets an attempt
+        if silent or m.autosolver:
             attempt = get_attempt(step, variants, allvariants)
         else:
             attempt = input_seq(f'?_{step:02}: ')
@@ -107,10 +109,11 @@ def run_mastermind():
         if not silent:
             show_attempt(step, attempt, new_variants, answer, variants)
 
+        # ready for a new attempt
         variants = new_variants
 
     else:
-        if black != m.COLUMNS and not silent:
+        if black != m.columns and not silent:
             show_gameover(code)
 
     return step
@@ -125,41 +128,41 @@ def gen_allvariants():
         w/  repetition: allVariants = char ** columns                             = len(variants)
         w/o repetition: allVariants = factorial(char) // factorial(char-columns)  = len(variants)
     """
-    if m.REPETITION:
-        vari = product(m.char_set, repeat=m.COLUMNS)         # w/  rep. __ string tuple of variants
+    if m.repetition:
+        vari = product(m.char_set, repeat=m.columns)  # w/  rep. __ string tuple of variants
     else:
-        vari = perm(m.char_set, m.COLUMNS)                   # w/o rep. __ string tuple of variants
-    return [''.join(single_char) for single_char in vari]    # string list of all variants, tuple dissolve and merge
+        vari = perm(m.char_set, m.columns)             # w/o rep. __ string tuple of variants
+    return [''.join(one_char) for one_char in vari]    # string list
 
 
 def gen_variant():
     """ generates a random variant as a string
         from 'char_set' with the number of 'columns'
     """
-    if m.REPETITION:
-        seq = random.choices(m.char_set, k=m.COLUMNS)  # w/ rep., list of char
+    if m.repetition:
+        seq = random.choices(m.char_set, k=m.columns)  # w/ rep., list of char
     else:
-        seq = random.sample(m.char_set, m.COLUMNS)     # w/o rep.
+        seq = random.sample(m.char_set, m.columns)     # w/o rep.
     return ''.join(map(str, seq))                      # string
 
 
 def get_attempt(step, variants, allvariants):
     """ selects an item from a list of variants:
     """
-    if  m.ALGO == 0:
+    if  m.algo == 0:
         return get_random_variant(step, variants)
-    elif m.ALGO == 1:
+    elif m.algo == 1:
         return get_kooi_variant(step, variants, allvariants)
-    elif m.ALGO == 2:
+    elif m.algo == 2:
         return get_irvi_variant(step, variants, allvariants)
-    elif m.ALGO == 3:
+    elif m.algo == 3:
         return get_knuth_variant(step, variants, allvariants)
 
 
 def get_random_variant(step, variants):
     """ selects a random element from the 'variants' list
     """
-    if step > 1 or not m.REPETITION:
+    if step > 1 or not m.repetition:
         return random.sample(variants, 1)[0]    # string
     else:
         return first_pattern()
@@ -170,13 +173,10 @@ def get_kooi_variant(step, variants, allvariants):
     """
     if step > 1:
         if len(variants) != 1:
-            #feedb = {allVar: len(Counter(feedback(allVar, var) for var in variants)) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
+            # makes the table of answers, 1st: len(toa)=allvariants^2 !
+            # ... 6/4: 1296^2 = 1_679_616 x call feedback()
             toa_key = lambda allVar: len(Counter(feedback(allVar, var) for var in variants))
-
             attempt = max(allvariants, key = toa_key)
-            #attempt_list = [key for (key, value) in feeb.items() if value == feedb[attempt]]
-
             return attempt
         else:
             return variants[0]   # last variant directly -> attempt = code
@@ -189,13 +189,8 @@ def get_irvi_variant(step, variants, allvariants):
     """
     if step > 1:
         if len(variants) != 1:
-            #feedb = {allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
-            toa_key = lambda allVar: sum(value**2/lenVariants() for value in Counter(feedback(allVar, var) for var in variants).values())
-
+            toa_key = lambda allVar: sum(value**2/len_variants() for value in Counter(feedback(allVar, var) for var in variants).values())
             attempt = min(allvariants, key = toa_key)
-            #attempt_list = [key for (key, value) in feedb.items() if value == feedb[attempt]]
-
             return attempt
         else:
             return variants[0]   # last variant directly -> attempt = code
@@ -208,19 +203,12 @@ def get_knuth_variant(step, variants, allvariants):
     """
     if step > 1:
         if len(variants) != 1:
-            #feedb = {allVar: max(Counter(feedback(allVar, var) for var in variants).values()) for allVar in allvariants}
-            #toa_key = lambda allVar: feedb[allVar]
-
-            # makes the table of answers, 1st: len(toa)=allvariants^2 !
-            # ... 6/4: 1296^2 = 1_679_616 x call feedback()
             # returns the greatest value of histogram for the answers of allVar -> variants
             toa_key = lambda allVar: max(Counter(feedback(allVar,var) for var in variants).values())
 
             # returns the first variant with the smallest maxi-value of the set:
             # (allvariants : maxi-value)
             attempt = min(allvariants, key = toa_key)
-
-            #attempt_list = [key for (key, value) in feedb.items() if value == feedb[attempt]]
 
             return attempt
         else:
@@ -234,14 +222,14 @@ def first_pattern(scheme=0):
         (0): '1123', '11223'
         (1): '1122', '11223'
     """
-    if not m.REPETITION:
-        return ''.join(map(str,[m.char_set[col] for col in range(m.COLUMNS)]))
+    if not m.repetition:
+        return ''.join(map(str,[m.char_set[col] for col in range(m.columns)]))
 
     # with repetition
-    even = not m.COLUMNS % 2    # even number of columns
+    even = not m.columns % 2    # even number of columns
     pattern = []
     i = 0
-    for col in range(m.COLUMNS):
+    for col in range(m.columns):
         pattern.append(m.char_set[i])
 
         # odd column position, next character
@@ -285,48 +273,55 @@ def feedback(attempt, code):
     return black, white                   # integer
 
 
-def lenVariants():
+def len_variants():
+    """ returns the theoretical lenght of all variants
     """
-    """
-    if m.REPETITION:
-        return m.CHAR ** m.COLUMNS
+    if m.repetition:
+        return m.char ** m.columns
     else:
-        return fact(m.CHAR) // fact(m.CHAR - m.COLUMNS)
+        return fact(m.char) // fact(m.char - m.columns)
 
 
 # ==========================================================
 # INPUT DATA CHECK Section
 
 def check_setup():
+    """ check the dependencies
+    """
     # max. 10 digits or 26 letters
-    if m.NUMBERS and (m.CHAR > 10):       m.CHAR = 10
-    elif not m.NUMBERS and m.CHAR > 26:   m.CHAR = 26
+    if m.numbers and (m.char > 10):
+        m.char = 10
+    elif not m.numbers and m.char > 26:
+        m.char = 26
 
     # adjusts columns
-    if not m.REPETITION and (m.COLUMNS > m.CHAR): m.COLUMNS = m.CHAR
+    if not m.repetition and (m.columns > m.char):
+        m.columns = m.char
 
     # makes the set of characters
-    if m.NUMBERS: m.char_set = m.digits[:m.CHAR]     # cuts the string from the left
-    else:         m.char_set = m.letters[:m.CHAR]
+    if m.numbers:
+        m.char_set = m.DIGITS[:m.char]     # cuts the string from the left
+    else:
+        m.char_set = m.LETTERS[:m.char]
 
     # in manual mode no statistic option
-    if not m.AUTOPLAY1 or not m.AUTOPLAY2:
-        m.STATISTIC = False
+    if not m.autocoder or not m.autosolver:
+        m.statistic = False
 
     # game mode only with random algo
-    if not m.STATISTIC:
-        m.ALGO = 0
+    if not m.statistic:
+        m.algo = 0
 
     # cut the complexity and set char down
-    m.CHAR = max_char(m.CHAR)
+    m.char = max_char(m.char)
 
 
 def max_char(value):
-    # cut the complexity and set char down
-    # var=char**col .. char=var**1/col .. col=log(var,char)=log(var)/log(char)
-    if m.REPETITION and value ** m.COLUMNS > m.max_variants:
-        max = int(m.max_variants**(1/float(m.COLUMNS)))
-        return max
+    """ cut the complexity and set char down
+        var=char**col .. char=var**1/col .. col=log(var,char)=log(var)/log(char)
+    """
+    if m.repetition and value ** m.columns > m.MAX_VARIANTS:
+        return int(m.MAX_VARIANTS**(1/float(m.columns)))
     return value
 
 
@@ -334,87 +329,102 @@ def max_char(value):
 # INPUT & OUTPUT Section
 
 def show_setup():
+    """ show the actually setup values
+    """
     print(
-        f'{"Digits":14}: {m.NUMBERS}\n'
-        f'{"Columns":14}: {m.COLUMNS}\n'
-        f'{"Characters":14}: {m.CHAR}\n'
-        f'{"Attempt_limit":14}: {m.LIMIT}\n'
-        f'{"Repetition":14}: {m.REPETITION}\n'
-        f'{"Coder_autom":14}: {m.AUTOPLAY1}\n'
-        f'{"Solver_auto":14}: {m.AUTOPLAY2}\n'
-        f'{"Solver_hint":14}: {m.SHOW_HINT}\n'
+        f'{"Digits":14}: {m.numbers}\n'
+        f'{"Columns":14}: {m.columns}\n'
+        f'{"Characters":14}: {m.char}\n'
+        f'{"Attempt_limit":14}: {m.limit}\n'
+        f'{"Repetition":14}: {m.repetition}\n'
+        f'{"Coder_autom":14}: {m.autocoder}\n'
+        f'{"Solver_auto":14}: {m.autosolver}\n'
+        f'{"Solver_hint":14}: {m.show_hint}\n'
         , end='')
 
-    if m.AUTOPLAY1 and m.AUTOPLAY2:
+    if m.autocoder and m.autosolver:
         print(
-            f'{"Statistic":14}: {m.STATISTIC}\n'
-            f'{"Solver_algo":14}: {m.algo_set[m.ALGO]}\n'
-            f'{"Algo_all":14}: {m.ALL}\n'
-            f'{"TOA_file":14}: {m.TOA_help}\n'
-            f'{"Runs":14}: {m.RUNS:,}\n'
+            f'{"Statistic":14}: {m.statistic}\n'
+            f'{"Solver_algo":14}: {m.ALGO_SET[m.algo]}\n'
+            f'{"Algo_all":14}: {m.algo_all}\n'
+            f'{"TOA_file":14}: {m.toa_help}\n'
+            f'{"Runs":14}: {m.stat_runs:,}\n'
             , end='')
 
     print(
-        f'{"Solutions":14}: {lenVariants():,.0f}\n'
+        f'{"Solutions":14}: {len_variants():,.0f}\n'
         f'{"-"*24}\n'
     )
 
 
 def make_setup():
-    """ show and set the global values for the game
+    """ user can show and set the global values for the game
     """
-    x = input_bool(f'{"Digits ":.<15}{fg.grey}{" ["+str(m.NUMBERS)+"]":8}{fg.off}: ')
-    if x != '': m.NUMBERS = x
+    x = input_bool(f'{"Digits ":.<15}{fg.grey}{" ["+str(m.numbers)+"]":8}{fg.off}: ')
+    if x != '':
+        m.numbers = x
 
-    x = input_int(f'{"Columns ":.<15}{fg.grey}{" <"+str(m.COLUMNS)+">":8}{fg.off}: ')
-    if x != '': m.COLUMNS = x
+    x = input_int(f'{"Columns ":.<15}{fg.grey}{" <"+str(m.columns)+">":8}{fg.off}: ')
+    if x != '':
+        m.columns = x
 
-    if  m.NUMBERS:
-        x = input_int(f'{"Characters ":.<15}{fg.grey}{" <"+str(m.CHAR)+">":8}{fg.off}: ', max=10, chk=True)
+    if  m.numbers:
+        x = input_int(f'{"Characters ":.<15}{fg.grey}{" <"+str(m.char)+">":8}{fg.off}: ', max_in=10, chk=True)
     else:
-        x = input_int(f'{"Characters ":.<15}{fg.grey}{" <"+str(m.CHAR)+">":8}{fg.off}: ', max=26, chk=True)
-    if x != '': m.CHAR = x
+        x = input_int(f'{"Characters ":.<15}{fg.grey}{" <"+str(m.char)+">":8}{fg.off}: ', max_in=26, chk=True)
+    if x != '':
+        m.char = x
 
-    x = input_int(f'{"Attempt_limit ":.<15}{fg.grey}{" <"+str(m.LIMIT)+">":8}{fg.off}: ', max=50)
-    if x != '': m.LIMIT = x
-    x = input_bool(f'{"Repetition ":.<15}{fg.grey}{" ["+str(m.REPETITION)+"]":8}{fg.off}: ')
-    if x != '': m.REPETITION = x
-    x = input_bool(f'{"Coder_autom ":.<15}{fg.grey}{" ["+str(m.AUTOPLAY1)+"]":8}{fg.off}: ')
-    if x != '': m.AUTOPLAY1 = x
-    x = input_bool(f'{"Solver_auto ":.<15}{fg.grey}{" ["+str(m.AUTOPLAY2)+"]":8}{fg.off}: ')
-    if x != '': m.AUTOPLAY2 = x
+    x = input_int(f'{"Attempt_limit ":.<15}{fg.grey}{" <"+str(m.limit)+">":8}{fg.off}: ', max_in=50)
+    if x != '':
+        m.limit = x
+    x = input_bool(f'{"Repetition ":.<15}{fg.grey}{" ["+str(m.repetition)+"]":8}{fg.off}: ')
+    if x != '':
+        m.repetition = x
+    x = input_bool(f'{"Coder_autom ":.<15}{fg.grey}{" ["+str(m.autocoder)+"]":8}{fg.off}: ')
+    if x != '':
+        m.autocoder = x
+    x = input_bool(f'{"Solver_auto ":.<15}{fg.grey}{" ["+str(m.autosolver)+"]":8}{fg.off}: ')
+    if x != '':
+        m.autosolver = x
 
-    if not m.AUTOPLAY2:
-        x = input_bool(f'{"Solver_hint ":.<15}{fg.grey}{" ["+str(m.SHOW_HINT)+"]":8}{fg.off}: ')
-        if x != '': m.SHOW_HINT = x
+    if not m.autosolver:
+        x = input_bool(f'{"Solver_hint ":.<15}{fg.grey}{" ["+str(m.show_hint)+"]":8}{fg.off}: ')
+        if x != '':
+            m.show_hint = x
 
-    if m.AUTOPLAY1 and m.AUTOPLAY2:
-        x = input_bool(f'{"Statistic ":.<15}{fg.grey}{" ["+str(m.STATISTIC)+"]":8}{fg.off}: ')
-        if x != '': m.STATISTIC = x
+    if m.autocoder and m.autosolver:
+        x = input_bool(f'{"Statistic ":.<15}{fg.grey}{" ["+str(m.statistic)+"]":8}{fg.off}: ')
+        if x != '':
+            m.statistic = x
 
-        if m.STATISTIC:
-            x = input_int('Rand:0 Kooi :1\n'f'{"Irvi:2 Knuth:3":<16}{fg.grey}{"<"+str(m.ALGO)+">":7}{fg.off}: ', min=0, max=3)
-            if x != '': m.ALGO = x
+        if m.statistic:
+            x = input_int('Rand:0 Kooi :1\n'f'{"Irvi:2 Knuth:3":<16}{fg.grey}{"<"+str(m.algo)+">":7}{fg.off}: ', min_in=0, max_in=3)
+            if x != '':
+                m.algo = x
 
-            x = input_bool(f'{"Algo_all ":.<15}{fg.grey}{" ["+str(m.ALL)+"]":8}{fg.off}: ')
-            if x != '': m.ALL = x
+            x = input_bool(f'{"Algo_all ":.<15}{fg.grey}{" ["+str(m.algo_all)+"]":8}{fg.off}: ')
+            if x != '':
+                m.algo_all = x
 
-            x = input_bool(f'{"TOA_file ":.<15}{fg.grey}{" ["+str(m.TOA_help)+"]":8}{fg.off}: ')
-            if x != '': m.TOA_help = x
+            x = input_bool(f'{"TOA_file ":.<15}{fg.grey}{" ["+str(m.toa_help)+"]":8}{fg.off}: ')
+            if x != '':
+                m.toa_help = x
 
-            runs0 = f'{m.RUNS:,d}'
-            runs = f'{" <" + runs0 + ">":8}'
-            if len(runs)>8:    # change the format above 10,000
+            _run = f'{m.stat_runs:,d}'
+            runs = f'{" <" + _run + ">":8}'
+            if len(runs) > 8:    # change the format above 10,000
                 runs = f'{" " + runs:8}'
 
             run_max = 100      # algo > 0 are time-consuming
-            if m.ALL and m.RUNS > run_max:
-                x = input_int(f'{"Runs ":.<15}{fg.grey}{runs}{fg.off}: ', max=run_max)
+            if m.algo_all and m.stat_runs > run_max:
+                x = input_int(f'{"Runs ":.<15}{fg.grey}{runs}{fg.off}: ', max_in=run_max)
             else:
-                x = input_int(f'{"Runs ":.<15}{fg.grey}{runs}{fg.off}: ', max=100000)
-            if x != '': m.RUNS = x
+                x = input_int(f'{"Runs ":.<15}{fg.grey}{runs}{fg.off}: ', max_in=100000)
+            if x != '':
+                m.stat_runs = x
 
-    print(f'{"Solutions":23}: {lenVariants():,.0f}\n'\
+    print(f'{"Solutions":23}: {len_variants():,.0f}\n'\
         f'{"-"*30}\n')
 
     check_setup()
@@ -422,29 +432,31 @@ def make_setup():
 
 
 def show_attempt(step, attempt, new_variants, result, old_variants):
+    """ show the attempt & feedback
+    """
     black, white = result
-    lenVari = len(new_variants)
+    len_vari = len(new_variants)
     msg_feedb = f'-> b:{black} w:{white}'
     msg = msg_attempt = msg_vari = msg_end = step_right = step_high = ''
 
-    if m.AUTOPLAY2:
+    if m.autosolver:
         msg_attempt = f'?_{step:02}: {attempt} '
 
     else:
         step_high = '\033[1A'   # 1x
         if attempt in old_variants:
-            step_right = f'\033[{6 + m.COLUMNS + 1}C'
+            step_right = f'\033[{6 + m.columns + 1}C'
 
         # The attempt is not in the reducing variants
         # and has already been cancelled.
         else:
             msg_attempt = f'?_{step:02}: {fg.red}{attempt}{fg.off} '
 
-    tmp1 = f'{lenVari:,}:'
-    if not m.AUTOPLAY2 and m.SHOW_HINT:
+    tmp1 = f'{len_vari:,}:'
+    if not m.autosolver and m.show_hint:
         tmp2 = f' | {tmp1:<5} '
         tmp3 = str(new_variants)
-        if lenVari > 3:     # too many variants to show, only 3
+        if len_vari > 3:     # too many variants to show, only 3
             #tmp3 = str(random.sample(new_variants, 3)) + '\033[1D' + ', ...]'
             tmp3 = str(new_variants[:3]) + '\033[1D' + ', ...]'
         msg_vari = tmp2 + tmp3
@@ -452,16 +464,16 @@ def show_attempt(step, attempt, new_variants, result, old_variants):
         msg_vari = f' | {tmp1[:-1]:<5} '
 
     # not yet solved
-    if black < m.COLUMNS and m.ALGO > 0:
+    if black < m.columns and m.algo > 0:
         msg += msg_attempt + msg_feedb + msg_end
 
     # not yet solved, show variants
-    elif black < m.COLUMNS:
+    elif black < m.columns:
         msg += msg_attempt + msg_feedb + msg_vari + msg_end
 
     # solved
     else:
-        if m.AUTOPLAY2:
+        if m.autosolver:
             msg_attempt = f'{msg_attempt:11}'
             step_high=''
         else:
@@ -488,19 +500,19 @@ def show_attempt(step, attempt, new_variants, result, old_variants):
 
 
 def input_seq(text, coder=False):
-    """ Input code/attempt
+    """ returns the code/attempt string as input value
     """
     while True:
         try:
             seq = input(text).upper()
-            if len(seq) != m.COLUMNS:
+            if len(seq) != m.columns:
                 raise KeyboardInterrupt(f'{fg.magenta}Input to short/long...{fg.off}')
 
             for char in seq:
                 if char not in m.char_set:
                     raise KeyboardInterrupt(f'{fg.magenta}Input not in char set...{fg.off}')
 
-                if not m.REPETITION and seq.count(char) > 1:
+                if not m.repetition and seq.count(char) > 1:
                     raise KeyboardInterrupt(f'{fg.magenta}Input without repetitions...{fg.off}')
 
             return seq
@@ -513,37 +525,39 @@ def input_seq(text, coder=False):
                 m.error_ct -= 1
 
             up = '\033[1A'
-            down = '\033[1B'
-            right = f'\033[{6 + m.COLUMNS + 1}C'
-            left = f'\033[{6 + m.COLUMNS + 1}D'
+            right = f'\033[{6 + m.columns + 1}C'
             print(up + right + str(error))
 
 
-def input_int(text, min=1, max=10, chk=False):
+def input_int(text, min_in=1, max_in=10, chk=False):
+    """ returns an integer as input value
+    """
     while True:
         try:
             x = input(text)
             if x != '':
                 x = int(x)
-                if x < min or x > max:
+                if x < min_in or x > max_in:
                     x = int('error')
 
                 if chk:
-                    max = max_char(x)
-                    if max < x:
+                    max_in = max_char(x)
+                    if max_in < x:
                         x = int('error')
 
             elif chk:
-                max = max_char(m.CHAR)
-                if max < m.CHAR:
+                max_in = max_char(m.char)
+                if max_in < m.char:
                     x = int('error')
 
             return x
         except ValueError:
-            print(f'{fg.magenta}Only digits between {min}-{max} allowed...{fg.off}')
+            print(f'{fg.magenta}Only digits between {min_in}-{max_in} allowed...{fg.off}')
 
 
 def input_bool(text):
+    """ returns a boolean as input value
+    """
     while True:
         try:
             x = input(text)
@@ -565,6 +579,8 @@ def input_bool(text):
 
 
 def show_gameover(code):
+    """ show the string
+    """
     print('\n'
         f'{fg.red}-- GAME OVER --{fg.off}\n'
         f'The code was "{code}"\n'
@@ -575,7 +591,8 @@ def show_gameover(code):
 # STATISTIC Section
 
 def show_statistics(stati):
-    lenVari  = lenVariants()
+    """ show statistics
+    """
     attemptes  = stati[0]
     duration = stati[1]
     alltime = stati[2]
@@ -583,12 +600,12 @@ def show_statistics(stati):
     med2 = median(duration)
     avg1 = sum(attemptes)/len(attemptes)    # Durchschnitt / average
     avg2 = sum(duration)/len(duration)
-    mod0 = mode(attemptes)        # Modus: häufigster Wert / the most frequent value
     mod1 = multimode(attemptes)   # [häufigsten Werte] / [the most common values]
+    #mod0 = mode(attemptes)        # Modus: häufigster Wert / the most frequent value
 
     msg  = (
-        #f'{"algo":13}: {m.algo_set[m.ALGO]}\n'
-        #f'{"runs":13}: {m.RUNS:,}\n'
+        #f'{"algo":13}: {m.ALGO_SET[m.algo]}\n'
+        #f'{"runs":13}: {m.stat_runs:,}\n'
         f'{fg.cyan}{"avg. attemp.":13}: {avg1:.3f}{fg.off}\n'
         f'{"med. attemp.":13}: {med1:.1f}\n'
         f'{"mod. attemp.":13}: {mod1}\n'
@@ -605,7 +622,10 @@ def show_statistics(stati):
 
 
 def toa_loader():
-    if m.TOA_help: load_toa_file()
+    """ handle the toa_load call
+    """
+    if m.toa_help:
+        load_toa_file()
     elif m.toa_loaded:
         m.toa.clear()
         m.toa_loaded = False
@@ -613,16 +633,17 @@ def toa_loader():
 
 def load_toa_file():
     """ TOA: dict( (attempt, code): (black, white), ... )
-    ('1111','1111'):(4,0), ('1111','1112'):(3,0), ...
-    toa[('1111','1111')] -> (4,0)
+        ('1111','1111'):(4,0), ('1111','1112'):(3,0), ...
+        toa[('1111','1111')] -> (4,0)
     """
-    if m.toa_loaded: return
+    if m.toa_loaded:
+        return
 
-    m.TOA_name += '.bz2'
-    dirPath = Path(Path.home(), m.userSubDirPath)
-    filename = Path(dirPath, m.TOA_name)
+    m.toa_fn = m.TOA_NAME + '.bz2'
+    dir_path = Path(Path.home(), m.userSubDirPath)
+    filename = Path(dir_path, m.toa_fn)
 
-    print(f'load table_of_answers ... ', end='')
+    print('load table_of_answers ... ', end='')
 
     if Path(filename).is_file():
         file = bz2.BZ2File(filename, 'r')
@@ -636,10 +657,12 @@ def load_toa_file():
 
 
 def save_toa_file():
-    dirPath = Path(Path.home(), m.userSubDirPath)
-    filename = Path(dirPath, m.TOA_name)
+    """ save the toa to file
+    """
+    dir_path = Path(Path.home(), m.userSubDirPath)
+    filename = Path(dir_path, m.toa_fn)
     if m.toa_loaded_len < len(m.toa):
-        print(f'\nsave table_of_answers ... ', end='')
+        print('\nsave table_of_answers ... ', end='')
         file = bz2.BZ2File(filename, 'w')
         pickle.dump(m.toa, file)
         file.close()
@@ -647,16 +670,24 @@ def save_toa_file():
 
 
 def run_statistic():
+    """ starts the statistic run
+    """
     print(f'{"*"*25}')
-    print(f'{"algo":13}: {m.algo_set[m.ALGO]} ({m.ALGO})')
-    print(f'{"runs":13}: {m.RUNS:,}')
+    print(f'{"algo":13}: {m.ALGO_SET[m.algo]} ({m.algo})')
+    print(f'{"runs":13}: {m.stat_runs:,}')
 
-    repeats = m.RUNS
+    repeats = m.stat_runs
+    # stat_array [
+    #   [run0(step), run1(), ..],
+    #   [run0(duration), run1(), ..],
+    #   time_overall
+    # ]
+    # init array [[],[]]
+    stat = [ [] * repeats for _ in range(2) ]
+    stat = [[] for _ in range(2)]
     starttime0 = time.perf_counter()
-    stat = [[0]*repeats for _ in range(2)]
 
-
-    ''' Progress indicator '''
+    # Progress indicator
     progress = 0
     step = repeats // 10     # 10% Step
     print("*****", end="", flush=True)
@@ -669,29 +700,33 @@ def run_statistic():
 
         m.code = m.code_pool[run]
         starttime  = time.perf_counter()
-        stat[0][run] = run_mastermind()
-        stat[1][run] = (time.perf_counter() - starttime) * 1000   #msec
+        stat[0].append(run_mastermind())
+        stat[1].append((time.perf_counter() - starttime) * 1000)   #msec
 
-    stat.append((time.perf_counter() - starttime0))             #sec
+    stat.append(time.perf_counter() - starttime0)      # type: ignore // sec
     print()
 
-    if m.STATISTIC: show_statistics(stat)
-    else: m.STATISTIC = True            # reset of repeats==1
+    if m.statistic:
+        show_statistics(stat)
+    else:
+        m.statistic = True            # reset of repeats==1
 
 
 def run_statistic_all():
-    temp = m.ALGO
-    for algo in m.algo_set:
-        m.ALGO = algo
+    """ starts the statistic run for all algorithms
+    """
+    temp = m.algo
+    for algo in m.ALGO_SET:
+        m.algo = algo
         run_statistic()
-    m.ALGO = temp
+    m.algo = temp
 
 
 # ==========================================================
 # COLOR
 
 class fg:
-    """ANSI escape foreground color (30-37)/90-97
+    """ ANSI escape foreground color (30-37)/90-97
     """
     grey    = '\033[90m'
     red     = '\033[91m'
@@ -705,7 +740,7 @@ class fg:
 
 
 class ColorList:
-    """long list ANSI escape color sequence
+    """ long list ANSI escape color sequence
     """
     # Reset
     Color_Off = "\033[0m"       # Text Reset
@@ -791,16 +826,19 @@ class ColorList:
 # ==========================================================
 
 def main():
+    """ the main call, starts mastermind
+    """
     print('\n', __doc__)
     print(f'{fg.yellow}-- MasterMind --{fg.off}')
 
-    first = True
     key = ''
+    first = True
     while key.lower() != 'n':
         print(f'{"="*24}\n')
 
-        if first: show_setup()
-        first = False
+        if first:
+            show_setup()
+            first = False
 
         x = input('Change setup? <y>  : ')
         print()
@@ -811,21 +849,22 @@ def main():
         toa_loader()
 
 
-        if not m.STATISTIC:
+        if not m.statistic:
             run_mastermind()
 
         else:
-            for run in range(m.RUNS):
+            for _ in range(m.stat_runs):
                 m.code_pool.append(gen_variant())
 
-            if m.ALL:
+            if m.algo_all:
                 run_statistic_all()
             else:
                 run_statistic()
 
         key = input('\nRepeat the game? <y/n> : ')
 
-    if m.toa_loaded: save_toa_file()
+    if m.toa_loaded:
+        save_toa_file()
     print('\n-- END --\n')
 
 
