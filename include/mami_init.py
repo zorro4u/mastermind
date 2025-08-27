@@ -42,15 +42,22 @@ class Init:
     # ==========================================================
     # generally used variables/values/properties
 
-    # available language packages
-    LANG_DICT    = {1: EN, 2: GER, 3: FRA}
-    LETTERS      = string.ascii_uppercase
-    DIGITS       = "1234567890"
-
     MAX_VARIANTS = 10**7    # cut the range of char/col combinations
     MAX_RUN1     = 100_000  # limit the statistic runs
     MAX_RUN2     = 10_000   # algo > 1 are time-consuming
     STORE_STAT   = 5_000    # runs from which the statistic results are automatically saved to file
+
+    LANG_DICT    = {1: EN, 2: GER, 3: FRA}  # available language packages
+    LETTERS      = string.ascii_uppercase
+    DIGITS       = "1234567890"
+
+    # solver modes
+    ALGO_SET = {
+        1 : "Random",
+        2 : "Knuth",
+        3 : "Kooi",
+        4 : "Irving",
+    }
 
     prev_guesses = []    # contains all previous guesses
     error_ct   = 0       # for show input error
@@ -64,14 +71,6 @@ class Init:
     tor_loaded = False   # TOR file is loaded
     tor_loaded_len = 0   # number of loaded responses from file
     thread     = False   # statistic run in multi-thread/processor mode // bad realisation :-(
-
-    # solver modes
-    ALGO_SET = {
-        1 : "Random",
-        2 : "Knuth",
-        3 : "Kooi",
-        4 : "Irving",
-    }
 
     fb_alternat = False  #  Feedb Variant with more counts but slowier
     fb_calls  = 0        # fb_call
