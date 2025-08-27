@@ -6,25 +6,23 @@ from include import Starter
 # ==========================================================
 
 class Mastermind(Starter):
-    """ starts the program with run()
+    """ start it with run()
     """
 
     @classmethod
     def run(cls):
-        """ the main call, starts mastermind
+        """ mastermind main call
         """
-        print("\n", __doc__)
-        print(f'\n{fg.yellow}-- MasterMind --{fg.off}')
-        print(f'{"=" * 24}\n')
-
         first = True
-        key = True
+        key   = True
         while key:
             if first:
                 cls.show_setup()
             cls.question_change_setup(first)
             cls.load_tor_file()
+
             cls.start_game()
+
             key = cls.question_repeat_game()
             first = False
         cls.save_tor_file()
@@ -35,8 +33,12 @@ class Mastermind(Starter):
 # ==========================================================
 
 def main():
-    """ the main call, starts mastermind
+    """ starts mastermind
     """
+    print("\n", __doc__)
+    print(f'{fg.yellow}-- MasterMind --{fg.off}')
+    print(f'{"=" * 24}\n')
+
     Mastermind.run()
 
 # ==========================================================

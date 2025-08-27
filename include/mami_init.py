@@ -44,13 +44,14 @@ class Init:
 
     # available language packages
     LANG_DICT    = {1: EN, 2: GER, 3: FRA}
+    LETTERS      = string.ascii_uppercase
+    DIGITS       = "1234567890"
 
     MAX_VARIANTS = 10**7    # cut the range of char/col combinations
     MAX_RUN1     = 100_000  # limit the statistic runs
     MAX_RUN2     = 10_000   # algo > 1 are time-consuming
     STORE_STAT   = 5_000    # runs from which the statistic results are automatically saved to file
-    LETTERS      = string.ascii_uppercase
-    DIGITS       = "1234567890"
+
     prev_guesses = []    # contains all previous guesses
     error_ct   = 0       # for show input error
     char_set   = []      # [0,1,2,..] will be set later on 'check_setup'
@@ -61,7 +62,7 @@ class Init:
     tor        = {}      # feedback dict: Table_Of_Responses
     tor_imp    = {}      # imported TOR
     tor_loaded = False   # TOR file is loaded
-    tor_loaded_len = 0   # number of loaded Responses from file
+    tor_loaded_len = 0   # number of loaded responses from file
     thread     = False   # statistic run in multi-thread/processor mode // bad realisation :-(
 
     # solver modes
