@@ -18,10 +18,14 @@ class Starter(Calculation):
     def start_game(cls):
         """ starts statistic or single mode
         """
+        cls.load_tor_file()
+
         if cls.statistic:
             cls.start_statistic()
         else:
             cls.start_mastermind()
+
+        cls.save_tor_file()
 
 
     @classmethod

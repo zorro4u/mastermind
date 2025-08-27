@@ -186,8 +186,8 @@ class Setup(File):
         #print(f'{lang['feedb'].capitalize():27}: {cls.len_variants()**2:,d}')
         print(f'{"-" * 35}\n')
 
-        cls.check_setup()
         cls.lang = lang
+        cls.check_setup()
 
         # run the game after press a button
         msg = "[ Start ] <--| "
@@ -198,8 +198,6 @@ class Setup(File):
         if not key:
             print("\33[2A")     # 1up
             cls.question_change_setup()
-
-        #cls.load_tor_file()
 
 
     @classmethod
@@ -348,7 +346,7 @@ class Setup(File):
 
     @classmethod
     def question_change_setup(cls, first=True):
-        """ show the question and delete the show
+        """ show the setup question and delete it after input
         """
         msg_input = f'{cls.lang['setup']+" ? ":20}'
         key = cls.input_bool(msg_input)

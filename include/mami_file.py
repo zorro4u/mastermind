@@ -72,6 +72,7 @@ class File(Init):
                 pickle.dump(cls.tor, file)
                 file.close()
                 print(cls.lang['done'])
+                cls.tor_loaded_len = tor_len
 
 
     @classmethod

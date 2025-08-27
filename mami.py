@@ -19,13 +19,11 @@ class Mastermind(Starter):
             if first:
                 cls.show_setup()
             cls.question_change_setup(first)
-            cls.load_tor_file()
 
             cls.start_game()
 
             key = cls.question_repeat_game()
             first = False
-        cls.save_tor_file()
 
         print("\n-- " + cls.lang['end'].upper() + " --\n")
 
