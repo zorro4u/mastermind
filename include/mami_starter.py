@@ -5,6 +5,7 @@ from concurrent import futures as fs
 #import multiprocessing as mp
 
 from .mami_calc import Calculation
+from .mami_tools import ProgressBar
 
 
 class Starter(Calculation):
@@ -78,35 +79,18 @@ class Starter(Calculation):
         #   [run0(duration), run1(), ..]]
         stat = [[],[]]
 
-        # a simple and fast progress indicator
-        #
-        char       = "*" # sign of progress bar
-        char_max   = 26  # length of progress bar / even number
-        char_off   = 4   # first offset / even
-        width      = 2   # width of bar step
-        pb_trigger = 0   # trigger for bar output
-        steps = int((char_max - char_off) / width)      # parts of bar
-        step = repeats // steps if repeats > 9 else 1   # number of values per bar, no zero
-        step += 1 if repeats % steps else 0             # manage the rest of values
-        rest = steps - repeats // step
-        print(char * char_off, end="")                  # bar offset for the beginning 0%
+        # a simple progress indicator
+        pb = ProgressBar(repeats)
+        pb.start()
 
         starttime0 = time.perf_counter()
         if not cls.thread:
             for code in cls.code_pool:
-
-                # progress bar
-                pb_trigger += 1
-                if pb_trigger == step:
-                    pb_trigger = 0
-                    print(f"{char * width}", end="", flush=True)
-
+                pb.update()     # progress bar output
                 starttime  = time.perf_counter()
                 stat[0].append(cls.start_mastermind(code))
                 stat[1].append((time.perf_counter() - starttime) * 1000)   # msec
-
-            print(char * width * rest)          # progbar: fill up to char_max
-
+            pb.close()
 
         # threading
         # yet not working efficient

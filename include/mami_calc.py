@@ -96,12 +96,13 @@ class Calculation(Setup):
             product('ABCD', repeat=2) = AA AB AC AD BA BB BC BD CA CB CC CD DA DB DC DD
             permutations('ABCD', 2) =   AB AC AD BA BC BD CA CB CD DA DB DC
         """
-        columns = cls.columns
+        columns  = cls.columns
+        char_set = cls.char_set
 
         #string tuple of variants,
         # product:     (cartesian product, equivalent to a nested for-loop)
         # permutation: (r-length tuples, all possible orderings, no repeated elements)
-        vari = product(cls.char_set, repeat=columns) if cls.repetition else perm(cls.char_set, columns)
+        vari = product(char_set, repeat=columns) if cls.repetition else perm(char_set, columns)
 
         # merge the single list to string & added to list of vari_strings
         return ["".join(map(str, i)) for i in vari]
@@ -112,10 +113,11 @@ class Calculation(Setup):
         """ generates a random variant as a string
             from 'char_set' with the number of 'columns'
         """
-        columns = cls.columns
+        col = cls.columns
+        char_set = cls.char_set
 
         ## list of char
-        seq = random.choices(cls.char_set, k=columns) if cls.repetition else random.sample(cls.char_set, columns)
+        seq = random.choices(char_set, k=col) if cls.repetition else random.sample(char_set, col)
 
         return "".join(map(str, seq))   # string
 
@@ -317,8 +319,6 @@ class Calculation(Setup):
                 # store allvari and its max_grp,
                 # the feedback with the greatest response
                 best_max.append((allvari, max_grp))
-
-        #best_max = [(allvari, max(Counter(feedback(allvari, var) for var in variants).values())) for allvari in allvariants if not allvari in cls.prev_guesses]
 
         # the lowest of high group counts // the worst case
         min_grp = min(best_max, key=lambda x: x[1])[1]

@@ -1,5 +1,7 @@
-""" Toolbox
-    ColorSet, TimeConverter, ...
+""" Collection Of Tools:
+    ColorList
+    ToolBox
+    ProgressBar
 """
 from os import system
 system("color")
@@ -23,10 +25,9 @@ class ColorList:
 
 
 # ==========================================================
-# ToolBox
 
-class Toolbox:
-    """ collection of tools
+class ToolBox:
+    """ change_time_to_string,
     """
 
     @staticmethod
@@ -82,4 +83,49 @@ class Toolbox:
         #timeit('"-".join(str(n) for n in range(100))', number=10_000)
 
 
-    # ==========================================================
+# ==========================================================
+
+class ProgressBar:
+    """ a simple and fast progress indicator
+    """
+    def __init__(self, total, **kwargs):
+        # input arguments
+        repeats  = total if total else 1        # total iterations
+        char_max = kwargs.get('char_max', 26)   # length of progress bar / even number
+        char_off = kwargs.get('char_off', 4)    # first offset / even
+        width = kwargs.get('width', 2)          # width of bar step
+        char  = kwargs.get('char', "*")         # sign of progress bar
+
+        steps = int((char_max - char_off) / width)      # parts of bar
+        step  = repeats // steps if repeats > 9 else 1  # number of values per bar, no zero
+        step += 1 if repeats % steps else 0             # manage the rest of values
+        rest  = steps - repeats // step
+
+        self.trigger  = 0   # trigger for bar output
+        self.char_off = char_off
+        self.char  = char
+        self.width = width
+        self.step  = step
+        self.rest  = rest
+
+        #self.start()
+
+    def start(self):
+        """ bar offset for the beginning 0%
+        """
+        print(self.char * self.char_off, end="")
+
+    def update(self):
+        """ progress bar output """
+        self.trigger += 1
+        if self.trigger == self.step:
+            self.trigger = 0
+            print(f"{self.char * self.width}", end="", flush=True)
+
+    def close(self):
+        """ fill up to char_max
+        """
+        print(self.char * self.width * self.rest)
+
+
+# ==========================================================

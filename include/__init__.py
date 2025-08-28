@@ -10,4 +10,6 @@ from .mami_file import File
 from .mami_setup import Setup
 from .mami_calc import Calculation
 from .mami_starter import Starter
-from .mami_tools import ColorList, Toolbox
+from .mami_tools import ColorList
+from .mami_tools import ToolBox
+from .mami_tools import ProgressBar

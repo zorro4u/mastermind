@@ -7,7 +7,7 @@ from collections import Counter
 
 from .mami_file import File
 from .mami_tools import ColorList as fg   # ColorSet
-from .mami_tools import Toolbox as tb           # TimeConverter
+from .mami_tools import ToolBox as tb           # TimeConverter
 
 
 class Setup(File):
