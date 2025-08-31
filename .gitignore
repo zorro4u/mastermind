@@ -1,0 +1,31 @@
+exclude/
+*.bz2
+*.log
+
+
+## Git ##
+!.gitignore
+
+## Python ##
+__pycache__/
+
+# Virtual Environments #
+# no packages needed #
+.venv/
+
+## VisualStudioCode ##
+.vscode/
+!*.code-workspace
+
+## Windows ##
+# thumbnail cache
+Thumbs.db
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows shortcuts
+*.lnk
