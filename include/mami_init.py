@@ -30,7 +30,7 @@ class Init:
     stat_store = False   # save statistic results to file (automatic from 5000 runs)
     tor_help   = True    # use the tor_helper file // Table_Of_Responses
 
-    STAT_FILE  = "mami_stat"  # name of stored statistic file (w/o .extension ".txt")
+    STAT_FILE  = "mami_stat"  # name of stored statistic file (w/o .extension ".log")
     TOR_NAME   = "tor"        # name of loaded/stored TOR file (w/o .extension ".bz2")
 
     STAT_DIR   = ""           # SubDir to statistic file

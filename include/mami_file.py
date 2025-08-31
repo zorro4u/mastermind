@@ -89,7 +89,7 @@ class File(Init):
             pass
 
         if cls.stat_store:
-            stat_file = Path(path_to_store, cls.STAT_FILE + ".txt")
+            stat_file = Path(path_to_store, cls.STAT_FILE + ".log")
             if stat_file.is_file():
                 msg_head = "\n"
 
@@ -120,7 +120,7 @@ class File(Init):
         path_to_store = Path(cls.MY_PATH, cls.STAT_DIR)
         stat_msg = stat_msg.replace("\033[96m", "")
         stat_msg = stat_msg.replace("\033[0m", "")
-        stat_file = Path(path_to_store, cls.STAT_FILE + ".txt")
+        stat_file = Path(path_to_store, cls.STAT_FILE + ".log")
         with open(stat_file,"a", encoding="utf-8") as file:
             file.write(stat_msg)
 
