@@ -1,7 +1,7 @@
 ![Python](https://img.shields.io/badge/python-3.13.2-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-yellow)
 
-# Mastermind Game (console)
+# Mastermind Game
 
 aka codebreaker / superhirn
 
